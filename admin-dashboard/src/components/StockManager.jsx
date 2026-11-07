@@ -24,9 +24,9 @@ export default function StockManager({ products, onBulkAddStock, stockItems }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-slate-100">គ្រប់គ្រងស្តុក (Stock & Inventory)</h2>
+        <h2 className="text-lg font-bold text-slate-100">Stock & Inventory Management</h2>
         <p className="text-xs text-slate-400">
-          បន្ថែម Account (User:Pass) ឬ License Keys ទៅក្នុងស្តុកដោយស្វ័យប្រវត្តិ
+          Upload bulk account credentials (user:pass) or license keys for instant auto-delivery
         </p>
       </div>
 
@@ -35,12 +35,12 @@ export default function StockManager({ products, onBulkAddStock, stockItems }) {
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
           <div className="flex items-center gap-2 mb-4">
             <PlusCircle className="w-5 h-5 text-emerald-400" />
-            <h3 className="text-sm font-bold text-slate-100">បញ្ចូលស្តុកថ្មី (Bulk Restock)</h3>
+            <h3 className="text-sm font-bold text-slate-100">Bulk Stock Upload</h3>
           </div>
 
           <form onSubmit={handleAdd} className="space-y-4 text-xs">
             <div>
-              <label className="block text-slate-300 font-medium mb-1">ជ្រើសរើសផលិតផល</label>
+              <label className="block text-slate-300 font-medium mb-1">Target Product</label>
               <select
                 value={selectedProductId}
                 onChange={(e) => setSelectedProductId(e.target.value)}
@@ -48,7 +48,7 @@ export default function StockManager({ products, onBulkAddStock, stockItems }) {
               >
                 {products.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.icon} {p.name} (បច្ចុប្បន្ននៅសល់: {p.stockCount})
+                    {p.icon} {p.name} (In stock: {p.stockCount})
                   </option>
                 ))}
               </select>
@@ -57,10 +57,10 @@ export default function StockManager({ products, onBulkAddStock, stockItems }) {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-slate-300 font-medium">
-                  បញ្ជី Accounts ឬ Keys (១ បន្ទាត់ = ១ ទំនិញ)
+                  Credentials or Keys (1 line = 1 item)
                 </label>
                 <span className="text-[11px] text-slate-500">
-                  {lines.split('\n').filter((l) => l.trim()).length} Items ត្រៀមបញ្ចូល
+                  {lines.split('\n').filter((l) => l.trim()).length} Items ready
                 </span>
               </div>
               <textarea
@@ -76,7 +76,7 @@ export default function StockManager({ products, onBulkAddStock, stockItems }) {
             {successCount !== null && (
               <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
                 <CheckCircle className="w-4 h-4 shrink-0" />
-                <span>បានបញ្ចូលចំនួន {successCount} Items ទៅក្នុងស្តុកជោគជ័យ!</span>
+                <span>Successfully added {successCount} items to stock!</span>
               </div>
             )}
 
@@ -85,7 +85,7 @@ export default function StockManager({ products, onBulkAddStock, stockItems }) {
               disabled={!lines.trim()}
               className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.99]"
             >
-              បញ្ចូលទៅក្នុងស្តុកឥឡូវនេះ
+              Upload Items to Inventory
             </button>
           </form>
         </div>
@@ -97,7 +97,7 @@ export default function StockManager({ products, onBulkAddStock, stockItems }) {
               <div className="flex items-center gap-2">
                 <Layers className="w-5 h-5 text-blue-400" />
                 <h3 className="text-sm font-bold text-slate-100">
-                  ស្តុកដែលមានស្រាប់ ({selectedProduct?.name})
+                  Available Inventory ({selectedProduct?.name})
                 </h3>
               </div>
               <span className="px-2.5 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs font-bold">
@@ -108,7 +108,7 @@ export default function StockManager({ products, onBulkAddStock, stockItems }) {
             {currentProductStock.length === 0 ? (
               <div className="py-12 text-center text-slate-500 text-xs">
                 <Package className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                <p>គ្មានទំនិញក្នុងស្តុកនៅឡើយទេ។ សូមធ្វើការបញ្ចូលតាម Form ខាងឆ្វេង!</p>
+                <p>No inventory items remaining. Use the form on the left to restock!</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
@@ -129,4 +129,3 @@ export default function StockManager({ products, onBulkAddStock, stockItems }) {
     </div>
   );
 }
-

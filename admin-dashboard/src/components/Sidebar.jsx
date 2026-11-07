@@ -1,14 +1,15 @@
 import React from 'react';
-import { LayoutDashboard, ShoppingBag, Layers, ShoppingCart, Users, Megaphone, LogOut, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Layers, ShoppingCart, Users, Megaphone, LogOut, ShieldCheck, DownloadCloud } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, onLogout }) {
   const menuItems = [
-    { id: 'metrics', label: 'ផ្ទាំងទូទៅ (Overview)', icon: LayoutDashboard },
-    { id: 'products', label: 'ទំនិញ (Products)', icon: ShoppingBag },
-    { id: 'stock', label: 'គ្រប់គ្រងស្តុក (Stock)', icon: Layers },
-    { id: 'orders', label: 'ការបញ្ជាទិញ (Orders)', icon: ShoppingCart },
-    { id: 'users', label: 'អតិថិជន (Customers)', icon: Users },
-    { id: 'broadcast', label: 'ផ្ញើសារដំណឹង (Broadcast)', icon: Megaphone }
+    { id: 'metrics', label: 'Overview', icon: LayoutDashboard },
+    { id: 'products', label: 'Products', icon: ShoppingBag },
+    { id: 'stock', label: 'Stock Management', icon: Layers },
+    { id: 'orders', label: 'Orders', icon: ShoppingCart },
+    { id: 'users', label: 'Customers', icon: Users },
+    { id: 'downloader', label: 'Media Downloader', icon: DownloadCloud },
+    { id: 'broadcast', label: 'Broadcast', icon: Megaphone }
   ];
 
   return (
@@ -52,7 +53,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout }) {
           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all"
         >
           <LogOut className="w-4 h-4" />
-          <span>ចាកចេញ (Logout)</span>
+          <span>Logout</span>
         </button>
       </div>
     </aside>

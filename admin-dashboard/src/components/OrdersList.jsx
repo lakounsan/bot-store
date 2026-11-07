@@ -5,8 +5,8 @@ export default function OrdersList({ orders }) {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-slate-100">ប្រវត្តិការបញ្ជាទិញ (Orders History)</h2>
-        <p className="text-xs text-slate-400">បញ្ជីរាល់ការទិញទំនិញទាំងអស់របស់អតិថិជនតាម Telegram Bot</p>
+        <h2 className="text-lg font-bold text-slate-100">Orders History</h2>
+        <p className="text-xs text-slate-400">Complete log of all purchases delivered to customers via Telegram Bot</p>
       </div>
 
       <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
@@ -14,12 +14,12 @@ export default function OrdersList({ orders }) {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-950/60 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
               <tr>
-                <th className="p-4">លេខ Order</th>
-                <th className="p-4">ឈ្មោះទំនិញ</th>
+                <th className="p-4">Order ID</th>
+                <th className="p-4">Product Name</th>
                 <th className="p-4">Telegram ID</th>
-                <th className="p-4">តម្លៃទូទាត់</th>
-                <th className="p-4">ព័ត៌មានដែលបាន Deliver</th>
-                <th className="p-4">កាលបរិច្ឆេទ</th>
+                <th className="p-4">Price Charged</th>
+                <th className="p-4">Delivered Content</th>
+                <th className="p-4">Timestamp</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -27,7 +27,7 @@ export default function OrdersList({ orders }) {
                 <tr>
                   <td colSpan="6" className="p-8 text-center text-slate-500">
                     <ShoppingCart className="w-6 h-6 mx-auto mb-1 opacity-40" />
-                    មិនទាន់មានការបញ្ជាទិញនៅឡើយទេ
+                    No orders placed yet.
                   </td>
                 </tr>
               ) : (

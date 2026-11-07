@@ -23,15 +23,15 @@ export default function ProductManager({ products, categories, onAddProduct, onD
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-slate-100">គ្រប់គ្រងផលិតផល (Products Management)</h2>
-          <p className="text-xs text-slate-400">បន្ថែម ឬលុបផលិតផល និងកំណត់តម្លៃលក់</p>
+          <h2 className="text-lg font-bold text-slate-100">Products Catalog</h2>
+          <p className="text-xs text-slate-400">Add, configure, and manage digital items and pricing</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
           className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/20 transition-all active:scale-95"
         >
           <Plus className="w-4 h-4" />
-          <span>បន្ថែមផលិតផលថ្មី</span>
+          <span>Add New Product</span>
         </button>
       </div>
 
@@ -40,12 +40,12 @@ export default function ProductManager({ products, categories, onAddProduct, onD
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-950/60 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
               <tr>
-                <th className="p-4">រូបតំណាង</th>
-                <th className="p-4">ឈ្មោះផលិតផល</th>
-                <th className="p-4">ប្រភេទ</th>
-                <th className="p-4">តម្លៃ ($ USD)</th>
-                <th className="p-4">ស្តុកនៅសល់</th>
-                <th className="p-4 text-right">សកម្មភាព</th>
+                <th className="p-4">Icon</th>
+                <th className="p-4">Product Name</th>
+                <th className="p-4">Category</th>
+                <th className="p-4">Price ($ USD)</th>
+                <th className="p-4">Stock Status</th>
+                <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -92,14 +92,14 @@ export default function ProductManager({ products, categories, onAddProduct, onD
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <h3 className="text-base font-bold text-slate-100 mb-4">បន្ថែមផលិតផលថ្មី</h3>
+            <h3 className="text-base font-bold text-slate-100 mb-4">Add New Product</h3>
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-slate-300 font-medium mb-1">ឈ្មោះផលិតផល</label>
+                <label className="block text-slate-300 font-medium mb-1">Product Title</label>
                 <input
                   type="text"
                   required
-                  placeholder="ឧ. Netflix Premium 4K"
+                  placeholder="e.g. Netflix Premium 4K UHD"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500"
@@ -108,7 +108,7 @@ export default function ProductManager({ products, categories, onAddProduct, onD
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">ប្រភេទ (Category)</label>
+                  <label className="block text-slate-300 font-medium mb-1">Category</label>
                   <select
                     value={form.categoryId}
                     onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
@@ -123,7 +123,7 @@ export default function ProductManager({ products, categories, onAddProduct, onD
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">តម្លៃ ($ USD)</label>
+                  <label className="block text-slate-300 font-medium mb-1">Price ($ USD)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -137,7 +137,7 @@ export default function ProductManager({ products, categories, onAddProduct, onD
               </div>
 
               <div>
-                <label className="block text-slate-300 font-medium mb-1">រូប Icon (Emoji)</label>
+                <label className="block text-slate-300 font-medium mb-1">Emoji Icon</label>
                 <input
                   type="text"
                   placeholder="🎬, 💻, 🤖, 🍿"
@@ -148,10 +148,10 @@ export default function ProductManager({ products, categories, onAddProduct, onD
               </div>
 
               <div>
-                <label className="block text-slate-300 font-medium mb-1">ការពិពណ៌នា</label>
+                <label className="block text-slate-300 font-medium mb-1">Description</label>
                 <textarea
                   rows="3"
-                  placeholder="ព័ត៌មានបន្ថែមអំពីផលិតផល..."
+                  placeholder="Details, validity period, and usage instructions..."
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-500"
@@ -164,13 +164,13 @@ export default function ProductManager({ products, categories, onAddProduct, onD
                   onClick={() => setShowModal(false)}
                   className="px-4 py-2 rounded-xl text-slate-400 hover:text-slate-200 transition-colors"
                 >
-                  បោះបង់
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition-all"
                 >
-                  រក្សាទុក
+                  Save Product
                 </button>
               </div>
             </form>
@@ -180,4 +180,3 @@ export default function ProductManager({ products, categories, onAddProduct, onD
     </div>
   );
 }
-

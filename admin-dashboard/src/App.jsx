@@ -6,6 +6,7 @@ import StockManager from './components/StockManager';
 import OrdersList from './components/OrdersList';
 import UserList from './components/UserList';
 import BroadcastModal from './components/BroadcastModal';
+import DownloaderManager from './components/DownloaderManager';
 import { Lock, RefreshCw, ShieldCheck } from 'lucide-react';
 
 export default function App() {
@@ -24,6 +25,8 @@ export default function App() {
   const [stockItems, setStockItems] = useState([]);
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
+  const [downloadsData, setDownloadsData] = useState({ stats: { totalDownloads: 0, totalSizeMB: 0, platforms: {} }, recent: [] });
+  const [systemStatus, setSystemStatus] = useState(null);
 
   useEffect(() => {
     if (adminKey) {
@@ -44,11 +47,11 @@ export default function App() {
         fetchAllData(key);
       } else {
         setIsAuthenticated(false);
-        setAuthError('Admin Secret Key មិនត្រឹមត្រូវទេ');
+        setAuthError('Invalid Admin Secret Key');
       }
     } catch {
       setIsAuthenticated(false);
-      setAuthError('មិនអាចភ្ជាប់ទៅកាន់ Server បានទេ');
+      setAuthError('Could not connect to server');
     }
   };
 
@@ -57,13 +60,15 @@ export default function App() {
     const headers = { 'x-admin-key': key };
 
     try {
-      const [mRes, pRes, cRes, sRes, oRes, uRes] = await Promise.all([
+      const [mRes, pRes, cRes, sRes, oRes, uRes, dRes, sysRes] = await Promise.all([
         fetch('/api/dashboard/metrics', { headers }),
         fetch('/api/products', { headers }),
         fetch('/api/categories', { headers }),
         fetch('/api/stock', { headers }),
         fetch('/api/orders', { headers }),
-        fetch('/api/users', { headers })
+        fetch('/api/users', { headers }),
+        fetch('/api/downloads', { headers }),
+        fetch('/api/system/status', { headers })
       ]);
 
       if (mRes.ok) setMetrics(await mRes.json());
@@ -72,6 +77,8 @@ export default function App() {
       if (sRes.ok) setStockItems(await sRes.json());
       if (oRes.ok) setOrders(await oRes.json());
       if (uRes.ok) setUsers(await uRes.json());
+      if (dRes && dRes.ok) setDownloadsData(await dRes.json());
+      if (sysRes && sysRes.ok) setSystemStatus(await sysRes.json());
     } catch (e) {
       console.error('Fetch error:', e);
     } finally {
@@ -173,7 +180,7 @@ export default function App() {
               <ShieldCheck className="w-7 h-7 text-slate-950 stroke-[2.5]" />
             </div>
             <h1 className="text-xl font-black text-slate-100">StoreBot Admin</h1>
-            <p className="text-xs text-slate-400 mt-1">សូមបញ្ចូល Admin Secret Key ដើម្បីចូលដំណើរការ</p>
+            <p className="text-xs text-slate-400 mt-1">Enter your Admin Secret Key to access control panel</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -195,7 +202,7 @@ export default function App() {
               type="submit"
               className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/25 transition-all"
             >
-              ចូលទៅកាន់ផ្ទាំងគ្រប់គ្រង
+              Sign In to Dashboard
             </button>
           </form>
         </div>
@@ -242,6 +249,14 @@ export default function App() {
           )}
           {activeTab === 'orders' && <OrdersList orders={orders} />}
           {activeTab === 'users' && <UserList users={users} />}
+          {activeTab === 'downloader' && (
+            <DownloaderManager
+              downloadsData={downloadsData}
+              systemStatus={systemStatus}
+              onRefresh={() => fetchAllData()}
+              isLoading={isLoading}
+            />
+          )}
           {activeTab === 'broadcast' && (
             <BroadcastModal
               onSendBroadcast={handleSendBroadcast}

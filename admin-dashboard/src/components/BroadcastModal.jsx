@@ -17,19 +17,19 @@ export default function BroadcastModal({ onSendBroadcast, userCount }) {
     setIsSending(false);
 
     if (res.success) {
-      setStatus({ type: 'success', text: `បានផ្ញើសារជោគជ័យទៅកាន់សមាជិកចំនួន ${res.delivered}/${res.total} នាក់!` });
+      setStatus({ type: 'success', text: `Broadcast successfully delivered to ${res.delivered}/${res.total} users!` });
       setMessage('');
     } else {
-      setStatus({ type: 'error', text: res.error || 'ការផ្ញើសារបានបរាជ័យ' });
+      setStatus({ type: 'error', text: res.error || 'Failed to send broadcast' });
     }
   };
 
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-slate-100">ផ្ញើសារដំណឹង (Broadcast Announcement)</h2>
+        <h2 className="text-lg font-bold text-slate-100">Broadcast Announcement</h2>
         <p className="text-xs text-slate-400">
-          ផ្សព្វផ្សាយដំណឹងប្រូម៉ូសិន ឬទំនិញថ្មីទៅកាន់សមាជិក Telegram Bot ទាំងអស់ម្តង ({userCount} នាក់)
+          Send promotional announcements or restock updates to all active Telegram Bot members ({userCount} users)
         </p>
       </div>
 
@@ -37,12 +37,12 @@ export default function BroadcastModal({ onSendBroadcast, userCount }) {
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
             <label className="block text-slate-300 font-bold mb-1.5">
-              ខ្លឹមសារសារដំណឹង (គាំទ្រ Telegram Markdown Formatting)
+              Message Content (Supports Telegram Markdown)
             </label>
             <textarea
               rows="6"
               required
-              placeholder="🎉 ប្រូម៉ូសិនពិសេសចុងសប្តាហ៍!&#10;Netflix & Spotify បញ្ចុះតម្លៃ 20% រាល់ការទិញថ្ងៃនេះ...&#10;ចុច /shop ដើម្បីទិញឥឡូវនេះ!"
+              placeholder="🎉 Weekend Special Promo!&#10;Get 20% off all Netflix & Spotify accounts today...&#10;Click /shop to buy instantly!"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-slate-100 focus:outline-none focus:border-emerald-500 leading-relaxed font-sans"
@@ -53,7 +53,7 @@ export default function BroadcastModal({ onSendBroadcast, userCount }) {
           {message.trim() && (
             <div className="p-4 rounded-xl bg-slate-950 border border-slate-800">
               <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block mb-1">
-                ការបង្ហាញជាមុន (Live Preview)
+                Live Preview
               </span>
               <div className="text-slate-200 whitespace-pre-wrap font-sans text-xs">
                 {message}
@@ -86,12 +86,12 @@ export default function BroadcastModal({ onSendBroadcast, userCount }) {
             {isSending ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>កំពុងផ្ញើសារដំណឹង...</span>
+                <span>Sending broadcast...</span>
               </>
             ) : (
               <>
                 <Send className="w-4 h-4" />
-                <span>ផ្ញើសារទៅកាន់សមាជិកទាំងអស់ ({userCount} Users)</span>
+                <span>Broadcast to All Users ({userCount} Members)</span>
               </>
             )}
           </button>
@@ -100,4 +100,3 @@ export default function BroadcastModal({ onSendBroadcast, userCount }) {
     </div>
   );
 }
-

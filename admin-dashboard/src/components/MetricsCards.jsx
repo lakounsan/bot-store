@@ -1,39 +1,45 @@
 import React from 'react';
-import { DollarSign, ShoppingCart, Users, PackageCheck, AlertTriangle } from 'lucide-react';
+import { DollarSign, ShoppingCart, Users, PackageCheck, AlertTriangle, DownloadCloud } from 'lucide-react';
 
 export default function MetricsCards({ metrics }) {
   if (!metrics) return null;
 
   const cards = [
     {
-      title: 'ចំណូលសរុប (Total Revenue)',
+      title: 'Total Revenue',
       value: `$${Number(metrics.totalRevenue || 0).toFixed(2)}`,
       icon: DollarSign,
       color: 'from-emerald-500/20 to-teal-500/10 border-emerald-500/30 text-emerald-400'
     },
     {
-      title: 'ការបញ្ជាទិញ (Total Orders)',
+      title: 'Total Orders',
       value: metrics.totalOrders || 0,
       icon: ShoppingCart,
       color: 'from-blue-500/20 to-cyan-500/10 border-blue-500/30 text-blue-400'
     },
     {
-      title: 'អតិថិជនសរុប (Total Users)',
+      title: 'Total Customers',
       value: metrics.totalUsers || 0,
       icon: Users,
       color: 'from-purple-500/20 to-pink-500/10 border-purple-500/30 text-purple-400'
     },
     {
-      title: 'ស្តុកនៅសល់ (In-Stock Items)',
+      title: 'In-Stock Items',
       value: metrics.availableStockCount || 0,
       icon: PackageCheck,
       color: 'from-amber-500/20 to-orange-500/10 border-amber-500/30 text-amber-400'
+    },
+    {
+      title: 'Total Downloads',
+      value: metrics.totalDownloads || 0,
+      icon: DownloadCloud,
+      color: 'from-cyan-500/20 to-teal-500/10 border-cyan-500/30 text-cyan-400'
     }
   ];
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {cards.map((c, i) => {
           const Icon = c.icon;
           return (
@@ -58,10 +64,10 @@ export default function MetricsCards({ metrics }) {
           <div className="flex items-center gap-2 font-medium">
             <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
             <span>
-              មានផលិតផលចំនួន <strong className="font-bold underline">{metrics.lowStockProducts.length}</strong> បានអស់ពីស្តុក (Out of Stock)!
+              <strong className="font-bold underline">{metrics.lowStockProducts.length}</strong> product(s) are currently out of stock!
             </span>
           </div>
-          <span className="text-[11px] text-rose-400 font-semibold">សូមចូលទៅកាន់ Stock ដើម្បីបន្ថែម Accounts/Keys ថ្មី</span>
+          <span className="text-[11px] text-rose-400 font-semibold">Go to Stock Management to add fresh accounts or keys</span>
         </div>
       )}
     </div>
