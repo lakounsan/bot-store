@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: telegram-digital-store-bot
+    env: node
+    buildCommand: cd store-bot/backend && npm install && cd ../admin-dashboard && npm install && npm run build
+    startCommand: cd store-bot/backend && npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: ADMIN_TELEGRAM_ID
+        sync: false
+      - key: ADMIN_SECRET_KEY
+        generateValue: true
+      - key: BAKONG_ACCOUNT_ID
+        value: merchant@acleda
+      - key: BAKONG_MERCHANT_NAME
+        value: KHMER DIGITAL STORE
+      - key: REFERRAL_COMMISSION_PERCENT
+        value: 10
+
