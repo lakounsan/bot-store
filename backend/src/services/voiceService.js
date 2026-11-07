@@ -2,9 +2,9 @@ import { config } from '../config.js';
 
 /**
  * Text-to-Speech (TTS)
- * Generates audio buffer from text. Supports Khmer and English.
+ * Generates audio buffer from text. Supports English and multilingual TTS.
  */
-export async function textToSpeech(text, lang = 'km') {
+export async function textToSpeech(text, lang = 'en') {
   try {
     // If OpenAI API key is configured, use OpenAI TTS
     if (config.openaiApiKey) {

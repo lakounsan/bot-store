@@ -49,6 +49,93 @@ export function getExecutablePath() {
 }
 
 /**
+ * Check yt-dlp and ffmpeg health & version status
+ */
+export function checkYtDlpStatus() {
+  const exe = getExecutablePath();
+  let ytDlpVersion = null;
+  let ffmpegVersion = null;
+
+  try {
+    ytDlpVersion = execSync(`"${exe}" --version`, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch (e) {
+    ytDlpVersion = null;
+  }
+
+  try {
+    const ffmpegOut = execSync('ffmpeg -version', { stdio: ['ignore', 'pipe', 'ignore'] }).toString();
+    const firstLine = ffmpegOut.split('\n')[0];
+    ffmpegVersion = firstLine.replace('ffmpeg version', '').trim().split(' ')[0];
+  } catch (e) {
+    ffmpegVersion = null;
+  }
+
+  return {
+    available: Boolean(ytDlpVersion),
+    executablePath: exe,
+    ytDlpVersion: ytDlpVersion || 'Not Installed',
+    ffmpegAvailable: Boolean(ffmpegVersion),
+    ffmpegVersion: ffmpegVersion || 'Not Installed'
+  };
+}
+
+/**
+ * Fetch video metadata preview (title, uploader, duration, thumbnail) without downloading
+ */
+export function getVideoInfo(url) {
+  return new Promise((resolve, reject) => {
+    const ytDlp = getExecutablePath();
+    const args = [
+      '--dump-single-json',
+      '--no-playlist',
+      '--no-warnings',
+      '--skip-download',
+      url
+    ];
+
+    const proc = spawn(ytDlp, args, { windowsHide: true });
+    let stdout = '';
+    let stderr = '';
+
+    proc.stdout.on('data', (d) => { stdout += d.toString(); });
+    proc.stderr.on('data', (d) => { stderr += d.toString(); });
+
+    const timeout = setTimeout(() => {
+      proc.kill('SIGKILL');
+      reject(new Error('Timed out fetching video info'));
+    }, 30000);
+
+    proc.on('close', (code) => {
+      clearTimeout(timeout);
+      if (code !== 0) {
+        return reject(new Error(stderr.trim() || `yt-dlp exited with code ${code}`));
+      }
+      try {
+        const data = JSON.parse(stdout);
+        resolve({
+          id: data.id || '',
+          title: data.title || 'Video',
+          duration: data.duration || 0,
+          durationFormatted: formatDuration(data.duration),
+          uploader: data.uploader || data.channel || data.creator || 'Unknown',
+          extractor: data.extractor_key || data.extractor || 'Web',
+          platform: getPlatformBadge(data.extractor_key || data.extractor),
+          thumbnail: data.thumbnail || null,
+          webpageUrl: data.webpage_url || url
+        });
+      } catch (err) {
+        reject(new Error(`Failed to parse video info: ${err.message}`));
+      }
+    });
+
+    proc.on('error', (err) => {
+      clearTimeout(timeout);
+      reject(err);
+    });
+  });
+}
+
+/**
  * Extract HTTP/HTTPS URL from any text message
  */
 export function extractUrl(text = '') {
@@ -170,7 +257,7 @@ export function downloadVideo(url) {
     // 2-minute safety timeout
     const timeout = setTimeout(() => {
       proc.kill('SIGKILL');
-      reject(new Error('ទាញយកវីដេអូហួសពេលកំណត់ (Download timed out after 2 minutes)'));
+      reject(new Error('Download timed out after 2 minutes'));
     }, 120000);
 
     proc.on('close', (code) => {
@@ -183,9 +270,9 @@ export function downloadVideo(url) {
 
         if (!matchedFile) {
           if (stderr.includes('File is larger than max-filesize')) {
-            return reject(new Error('ទំហំវីដេអូធំជាង 50MB (លើសពីកម្រិតកំណត់ Telegram)'));
+            return reject(new Error('Video file exceeds 50MB (Telegram Bot limit)'));
           }
-          return reject(new Error(stderr.trim() || `ទាញយកវីដេអូបរាជ័យ (Exit code ${code})`));
+          return reject(new Error(stderr.trim() || `Download failed (Exit code ${code})`));
         }
 
         const filePath = path.join(tempDir, matchedFile);
@@ -213,7 +300,7 @@ export function downloadVideo(url) {
 
     proc.on('error', (err) => {
       clearTimeout(timeout);
-      reject(new Error(`មិនអាចដំណើរការ yt-dlp បានទេ៖ ${err.message}`));
+      reject(new Error(`Failed to execute yt-dlp: ${err.message}`));
     });
   });
 }
@@ -266,7 +353,7 @@ export function downloadAudio(url) {
 
     const timeout = setTimeout(() => {
       proc.kill('SIGKILL');
-      reject(new Error('ទាញយកសំឡេងហួសពេលកំណត់ (Download timed out)'));
+      reject(new Error('Audio download timed out'));
     }, 120000);
 
     proc.on('close', (code) => {
@@ -277,7 +364,7 @@ export function downloadAudio(url) {
         const matchedFile = files.find((f) => f.startsWith(`aud_${fileId}`));
 
         if (!matchedFile) {
-          return reject(new Error(stderr.trim() || `ទាញយកសំឡេងបរាជ័យ (Exit code ${code})`));
+          return reject(new Error(stderr.trim() || `Audio extraction failed (Exit code ${code})`));
         }
 
         const filePath = path.join(tempDir, matchedFile);
@@ -305,7 +392,7 @@ export function downloadAudio(url) {
 
     proc.on('error', (err) => {
       clearTimeout(timeout);
-      reject(new Error(`មិនអាចដំណើរការ yt-dlp បានទេ៖ ${err.message}`));
+      reject(new Error(`Failed to execute yt-dlp: ${err.message}`));
     });
   });
 }

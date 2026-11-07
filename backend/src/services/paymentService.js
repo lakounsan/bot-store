@@ -50,10 +50,10 @@ export async function verifyPayment(billNo, bot = null) {
     try {
       await bot.telegram.sendMessage(
         deposit.telegramId,
-        `✅ *ការទូទាត់ប្រាក់ទទួលបានជោគជ័យ!*\n\n` +
-        `💵 ចំនួនទឹកប្រាក់៖ *$${deposit.amount.toFixed(2)} USD*\n` +
-        `🧾 លេខវិក្កយបត្រ៖ \`${deposit.billNo}\`\n\n` +
-        `ប្រាក់ត្រូវបានបញ្ចូលទៅក្នុងកាបូប (Wallet) របស់អ្នករួចរាល់ហើយ!`,
+        `✅ *Payment Received Successfully!*\n\n` +
+        `💵 Amount: *$${deposit.amount.toFixed(2)} USD*\n` +
+        `🧾 Invoice No: \`${deposit.billNo}\`\n\n` +
+        `Funds have been credited to your Wallet! You can now shop directly.`,
         { parse_mode: 'Markdown' }
       );
     } catch (e) {
@@ -66,10 +66,10 @@ export async function verifyPayment(billNo, bot = null) {
     try {
       await bot.telegram.sendMessage(
         config.adminId,
-        `🔔 *ប្រាក់ចូលថ្មី (New Deposit)*\n\n` +
+        `🔔 *New Deposit Received*\n\n` +
         `👤 User ID: \`${deposit.telegramId}\`\n` +
-        `💵 ចំនួន៖ *$${deposit.amount.toFixed(2)} USD*\n` +
-        `🧾 លេខ Bill: \`${deposit.billNo}\``,
+        `💵 Amount: *$${deposit.amount.toFixed(2)} USD*\n` +
+        `🧾 Bill No: \`${deposit.billNo}\``,
         { parse_mode: 'Markdown' }
       );
     } catch (e) {

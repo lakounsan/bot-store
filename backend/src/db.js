@@ -12,24 +12,24 @@ const DB_FILE = path.join(config.dataDir, 'store_database.json');
 const DEFAULT_DATA = {
   users: {},
   categories: [
-    { id: 'cat_accounts', name: 'Premium Accounts (អាខោន)', icon: '🎬' },
-    { id: 'cat_software', name: 'Software & Keys (កម្មវិធី)', icon: '💻' },
+    { id: 'cat_accounts', name: 'Premium Accounts', icon: '🎬' },
+    { id: 'cat_software', name: 'Software & License Keys', icon: '💻' },
     { id: 'cat_tools', name: 'AI & Developer Tools', icon: '🤖' }
   ],
   products: [
     {
       id: 'prod_netflix',
       categoryId: 'cat_accounts',
-      name: 'Netflix Premium 4K UHD (1 ខែ)',
-      description: 'អាខោន Netflix 4K UHD Profile ផ្ទាល់ខ្លួន អាចមើលបាន 30 ថ្ងៃ',
+      name: 'Netflix Premium 4K UHD (1 Month)',
+      description: 'Personal 4K UHD profile with private PIN, valid for 30 days.',
       price: 3.50,
       icon: '🍿'
     },
     {
       id: 'prod_spotify',
       categoryId: 'cat_accounts',
-      name: 'Spotify Premium Individual (3 ខែ)',
-      description: 'អាខោន Spotify Premium ស្តាប់ភ្លេងគ្មានពាណិជ្ជកម្ម High Quality',
+      name: 'Spotify Premium Individual (3 Months)',
+      description: 'Ad-free high fidelity music streaming on your own account.',
       price: 2.00,
       icon: '🎵'
     },
@@ -37,7 +37,7 @@ const DEFAULT_DATA = {
       id: 'prod_win11',
       categoryId: 'cat_software',
       name: 'Windows 11 Pro Lifetime Retail Key',
-      description: 'License Key ស្របច្បាប់ 100% សម្រាប់ Activate Windows 11 Pro រហូត',
+      description: '100% Genuine Retail Key for permanent Windows 11 Pro activation.',
       price: 5.00,
       icon: '🪟'
     },
@@ -45,15 +45,15 @@ const DEFAULT_DATA = {
       id: 'prod_canva',
       categoryId: 'cat_software',
       name: 'Canva Pro Lifetime Education',
-      description: 'Upgrade Canva Account របស់អ្នកទៅ Pro ប្រើប្រាស់ Template & AI ពេញលេញ',
+      description: 'Upgrade your Canva account to Pro with full template and AI access.',
       price: 4.00,
       icon: '🎨'
     },
     {
       id: 'prod_chatgpt',
       categoryId: 'cat_tools',
-      name: 'ChatGPT Plus Shared Account (1 ខែ)',
-      description: 'អាខោន ChatGPT Plus ប្រើប្រាស់ GPT-4o, DALL-E 3 & Canvas',
+      name: 'ChatGPT Plus Shared Account (1 Month)',
+      description: 'Shared ChatGPT Plus account with access to GPT-4o, DALL-E 3 & Canvas.',
       price: 6.00,
       icon: '🤖'
     }
@@ -69,7 +69,8 @@ const DEFAULT_DATA = {
   ],
   orders: [],
   deposits: [],
-  referrals: []
+  referrals: [],
+  downloads: []
 };
 
 class Database {
@@ -81,7 +82,9 @@ class Database {
     try {
       if (fs.existsSync(DB_FILE)) {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        if (!parsed.downloads) parsed.downloads = [];
+        return parsed;
       }
     } catch (e) {
       console.error('Failed to read database, initializing default:', e.message);
@@ -120,6 +123,7 @@ class Database {
         balance: 0.00,
         totalSpent: 0.00,
         referredBy: validReferrer,
+        downloadCount: 0,
         createdAt: new Date().toISOString()
       };
 
@@ -338,19 +342,79 @@ class Database {
     };
   }
 
+  // --- Video & Audio Downloads Tracking ---
+  recordDownload({ telegramId, username, firstName, url, title, platform, type = 'video', sizeBytes = 0 }) {
+    if (!this.data.downloads) this.data.downloads = [];
+
+    const record = {
+      id: `dl_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      telegramId: telegramId ? String(telegramId) : null,
+      username: username || null,
+      firstName: firstName || 'User',
+      url: url || '',
+      title: title || 'Video',
+      platform: platform || 'Web',
+      type: type || 'video',
+      sizeBytes: Number(sizeBytes) || 0,
+      createdAt: new Date().toISOString()
+    };
+
+    this.data.downloads.unshift(record);
+    if (this.data.downloads.length > 1000) {
+      this.data.downloads = this.data.downloads.slice(0, 1000);
+    }
+
+    const userId = String(telegramId);
+    if (this.data.users[userId]) {
+      this.data.users[userId].downloadCount = (this.data.users[userId].downloadCount || 0) + 1;
+    }
+
+    this.save();
+    return record;
+  }
+
+  getRecentDownloads(limit = 50) {
+    if (!this.data.downloads) this.data.downloads = [];
+    return this.data.downloads.slice(0, limit);
+  }
+
+  getDownloadStats() {
+    const downloads = this.data.downloads || [];
+    const totalDownloads = downloads.length;
+    const totalSizeBytes = downloads.reduce((acc, d) => acc + (d.sizeBytes || 0), 0);
+    const totalSizeMB = parseFloat((totalSizeBytes / (1024 * 1024)).toFixed(2));
+
+    const platforms = {};
+    for (const d of downloads) {
+      const plat = d.platform || 'Other';
+      platforms[plat] = (platforms[plat] || 0) + 1;
+    }
+
+    return {
+      totalDownloads,
+      totalSizeMB,
+      totalSizeBytes,
+      platforms
+    };
+  }
+
   // --- Dashboard Metrics ---
   getDashboardMetrics() {
     const totalUsers = Object.keys(this.data.users).length;
     const totalOrders = this.data.orders.length;
     const totalRevenue = this.data.orders.reduce((sum, o) => sum + (o.price || 0), 0);
     const availableStockCount = this.data.stock.filter(s => !s.isSold).length;
+    const dlStats = this.getDownloadStats();
 
     return {
       totalUsers,
       totalOrders,
       totalRevenue: parseFloat(totalRevenue.toFixed(2)),
       availableStockCount,
-      lowStockProducts: this.getProducts().filter(p => p.stockCount === 0)
+      lowStockProducts: this.getProducts().filter(p => p.stockCount === 0),
+      totalDownloads: dlStats.totalDownloads,
+      totalDownloadSizeMB: dlStats.totalSizeMB,
+      downloadPlatforms: dlStats.platforms
     };
   }
 }

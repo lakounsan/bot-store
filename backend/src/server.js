@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { config } from './config.js';
 import { db } from './db.js';
 import { verifyPayment } from './services/paymentService.js';
+import { checkYtDlpStatus } from './services/videoDownloaderService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -126,7 +127,7 @@ export function createStoreServer(bot = null) {
       try {
         await bot.telegram.sendMessage(
           u.telegramId,
-          `📢 *សេចក្តីជូនដំណឹង (Announcement)*\n\n${message}`,
+          `📢 *Announcement*\n\n${message}`,
           { parse_mode: 'Markdown' }
         );
         delivered++;
@@ -151,6 +152,26 @@ export function createStoreServer(bot = null) {
       return res.json({ success: true, deposit: approved });
     }
     return res.status(404).json({ error: 'Deposit not found or already processed' });
+  });
+
+  // Video & Audio Downloads Analytics
+  app.get('/api/downloads', authMiddleware, (req, res) => {
+    res.json({
+      stats: db.getDownloadStats(),
+      recent: db.getRecentDownloads(100)
+    });
+  });
+
+  // System & Video Downloader Health Status
+  app.get('/api/system/status', authMiddleware, (req, res) => {
+    const ytDlpStatus = checkYtDlpStatus();
+    res.json({
+      ...ytDlpStatus,
+      nodeVersion: process.version,
+      platform: process.platform,
+      uptimeSeconds: Math.floor(process.uptime()),
+      memoryUsageMB: Math.round(process.memoryUsage().rss / (1024 * 1024))
+    });
   });
 
   // Serve static admin dashboard if built

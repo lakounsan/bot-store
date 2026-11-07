@@ -40,27 +40,28 @@ export function createStoreBot() {
     if (config.adminId && String(ctx.from.id) !== String(config.adminId)) {
       bot.telegram.sendMessage(
         config.adminId,
-        `👤 *សមាជិកថ្មីបានចុះឈ្មោះ (New User)*\n` +
-        `• ឈ្មោះ៖ ${escapeMarkdown(user.firstName)} (@${user.username || 'NoUsername'})\n` +
-        `• ID៖ \`${user.telegramId}\`\n` +
-        `• អ្នកណែនាំ៖ ${user.referredBy ? `\`${user.referredBy}\`` : 'None'}`,
+        `👤 *New User Registered*\n` +
+        `• Name: ${escapeMarkdown(user.firstName)} (@${user.username || 'NoUsername'})\n` +
+        `• ID: \`${user.telegramId}\`\n` +
+        `• Referrer: ${user.referredBy ? `\`${user.referredBy}\`` : 'None'}`,
         { parse_mode: 'Markdown' }
       ).catch(() => {});
     }
 
     const welcomeText =
-      `👋 *សូមស្វាគមន៍មកកាន់ ${escapeMarkdown(config.bakong.merchantName)}!*\n\n` +
-      `យើងខ្ញុំមានលក់ អាខោន Premium, License Keys និងកម្មវិធីផ្សេងៗ ប្រកបដោយទំនុកចិត្ត និងប្រព័ន្ធទូទាត់ប្រាក់ស្វ័យប្រវត្ត 24/7។\n\n` +
-      `👤 *ព័ត៌មានគណនីរបស់អ្នក៖*\n` +
-      `• ឈ្មោះ៖ *${escapeMarkdown(user.firstName)}*\n` +
-      `• User ID៖ \`${user.telegramId}\`\n` +
-      `• សមតុល្យកាបូប (Balance)៖ *$${user.balance.toFixed(2)} USD*\n\n` +
-      `សូមជ្រើសរើសមុខងារខាងក្រោម៖`;
+      `👋 *Welcome to ${escapeMarkdown(config.bakong.merchantName)}!*\n\n` +
+      `We offer Premium Accounts, Software License Keys & Digital Tools with instant automated delivery 24/7.\n\n` +
+      `👤 *Your Account Profile:*\n` +
+      `• Name: *${escapeMarkdown(user.firstName)}*\n` +
+      `• User ID: \`${user.telegramId}\`\n` +
+      `• Wallet Balance: *$${user.balance.toFixed(2)} USD*\n` +
+      `• Total Downloads: *${user.downloadCount || 0} media*\n\n` +
+      `Please choose an option below:`;
 
     const buttons = [
-      [Markup.button.callback('🛍️ មើលទំនិញ (Shop)', 'menu_categories'), Markup.button.callback('💳 កាបូបលុយ (Wallet)', 'menu_wallet')],
-      [Markup.button.callback('📦 ប្រវត្តិទិញ (Orders)', 'menu_orders'), Markup.button.callback('👥 ណែនាំមិត្ត (Referral)', 'menu_referral')],
-      [Markup.button.callback('🎤 Voice AI (TTS & STT)', 'menu_voice'), Markup.button.callback('📥 ទាញយកវីដេអូ (Downloader)', 'menu_downloader')]
+      [Markup.button.callback('🛍️ Shop Products', 'menu_categories'), Markup.button.callback('💳 My Wallet', 'menu_wallet')],
+      [Markup.button.callback('📦 Order History', 'menu_orders'), Markup.button.callback('👥 Referral Program', 'menu_referral')],
+      [Markup.button.callback('🎤 Voice AI (TTS/STT)', 'menu_voice'), Markup.button.callback('📥 Video Downloader', 'menu_downloader')]
     ];
 
     if (config.adminId && String(ctx.from.id) === String(config.adminId)) {
@@ -78,10 +79,10 @@ export function createStoreBot() {
     const buttons = categories.map((cat) => [
       Markup.button.callback(`${cat.icon} ${cat.name}`, `cat_${cat.id}`)
     ]);
-    buttons.push([Markup.button.callback('🔙 ត្រឡប់ក្រោយ (Main Menu)', 'main_menu')]);
+    buttons.push([Markup.button.callback('🔙 Back to Main Menu', 'main_menu')]);
 
     await ctx.editMessageText(
-      `📂 *សូមជ្រើសរើសប្រភេទផលិតផល (Categories)*\n\nជ្រើសរើសប្រភេទខាងក្រោមដើម្បីមើលផលិតផល និងចំនួនស្តុកដែលមានស្រាប់៖`,
+      `📂 *Product Categories*\n\nSelect a category below to explore available digital items and instant stock:`,
       { parse_mode: 'Markdown', ...Markup.inlineKeyboard(buttons) }
     );
   });
@@ -94,19 +95,19 @@ export function createStoreBot() {
 
     if (products.length === 0) {
       return ctx.editMessageText(
-        `⚠️ មិនទាន់មានផលិតផលក្នុងប្រភេទនេះនៅឡើយទេ។`,
-        Markup.inlineKeyboard([[Markup.button.callback('🔙 ត្រឡប់ក្រោយ', 'menu_categories')]])
+        `⚠️ No products available in this category yet.`,
+        Markup.inlineKeyboard([[Markup.button.callback('🔙 Back to Categories', 'menu_categories')]])
       );
     }
 
     const buttons = products.map((p) => {
-      const stockBadge = p.stockCount > 0 ? `(${p.stockCount} ក្នុងស្តុក)` : '(អស់ស្តុក)';
+      const stockBadge = p.stockCount > 0 ? `(${p.stockCount} in stock)` : '(Out of Stock)';
       return [Markup.button.callback(`${p.icon} ${p.name} - $${p.price.toFixed(2)} ${stockBadge}`, `prod_${p.id}`)];
     });
-    buttons.push([Markup.button.callback('🔙 ត្រឡប់ក្រោយ', 'menu_categories')]);
+    buttons.push([Markup.button.callback('🔙 Back to Categories', 'menu_categories')]);
 
     await ctx.editMessageText(
-      `🛍️ *បញ្ជីផលិតផល (Products List)*\n\nសូមចុចលើផលិតផលដើម្បីមើលព័ត៌មានលម្អិត និងទិញ៖`,
+      `🛍️ *Products Catalog*\n\nClick on any product to view details and instant purchase options:`,
       { parse_mode: 'Markdown', ...Markup.inlineKeyboard(buttons) }
     );
   });
@@ -118,24 +119,24 @@ export function createStoreBot() {
     const product = db.getProductById(prodId);
 
     if (!product) {
-      return ctx.reply('⚠️ រកមិនឃើញផលិតផលនេះទេ។');
+      return ctx.reply('⚠️ Product not found.');
     }
 
     const inStock = product.stockCount > 0;
     const detailText =
       `${product.icon} *${escapeMarkdown(product.name)}*\n\n` +
-      `📝 *ការពិពណ៌នា៖*\n${escapeMarkdown(product.description)}\n\n` +
-      `💵 *តម្លៃ៖* *$${product.price.toFixed(2)} USD*\n` +
-      `📦 *ស្ថានភាពស្តុក៖* ${inStock ? `✅ នៅសល់ *${product.stockCount}*` : '❌ *អស់ពីស្តុក (Out of Stock)*'}\n\n` +
-      `⚡ *ប្រព័ន្ធដឹកជញ្ជូន៖* ទទួលបាន Account / License Key ភ្លាមៗក្នុង Chat ក្រោយពេលទូទាត់!`;
+      `📝 *Description:*\n${escapeMarkdown(product.description)}\n\n` +
+      `💵 *Price:* *$${product.price.toFixed(2)} USD*\n` +
+      `📦 *Stock Status:* ${inStock ? `✅ *${product.stockCount} available*` : '❌ *Out of Stock*'}\n\n` +
+      `⚡ *Instant Delivery:* Account credentials or License Key will be delivered to this chat immediately upon purchase!`;
 
     const buttons = [];
     if (inStock) {
-      buttons.push([Markup.button.callback(`🛒 ទិញឥឡូវនេះ ($${product.price.toFixed(2)})`, `buy_${product.id}`)]);
+      buttons.push([Markup.button.callback(`🛒 Buy Now ($${product.price.toFixed(2)})`, `buy_${product.id}`)]);
     }
     buttons.push([
-      Markup.button.callback('🔙 ត្រឡប់ក្រោយ', `cat_${product.categoryId}`),
-      Markup.button.callback('🏠 ទំព័រដើម', 'main_menu')
+      Markup.button.callback('🔙 Back', `cat_${product.categoryId}`),
+      Markup.button.callback('🏠 Home', 'main_menu')
     ]);
 
     await ctx.editMessageText(detailText, {
@@ -146,28 +147,28 @@ export function createStoreBot() {
 
   // --- Buy & Instant Stock Delivery Flow ---
   bot.action(/^buy_(.+)$/, async (ctx) => {
-    await ctx.answerCbQuery('កំពុងដំណើរការទិញ...').catch(() => {});
+    await ctx.answerCbQuery('Processing purchase...').catch(() => {});
     const prodId = ctx.match[1];
     const product = db.getProductById(prodId);
     const user = db.getUser(ctx.from.id);
 
-    if (!product) return ctx.reply('⚠️ ផលិតផលមិនត្រឹមត្រូវ។');
-    if (product.stockCount <= 0) return ctx.reply('❌ ផលិតផលនេះអស់ពីស្តុកហើយ។ សូមរង់ចាំការ Restock ថ្មី!');
+    if (!product) return ctx.reply('⚠️ Invalid product.');
+    if (product.stockCount <= 0) return ctx.reply('❌ This product is currently out of stock. Please wait for restock!');
 
     // Check balance
     if (user.balance < product.price) {
       const shortfall = (product.price - user.balance).toFixed(2);
       return ctx.reply(
-        `⚠️ *សមតុល្យកាបូបរបស់អ្នកមិនគ្រប់គ្រាន់ទេ!*\n\n` +
-        `• តម្លៃទំនិញ៖ *$${product.price.toFixed(2)} USD*\n` +
-        `• សមតុល្យបច្ចុប្បន្ន៖ *$${user.balance.toFixed(2)} USD*\n` +
-        `• ខ្វះចំនួន៖ *$${shortfall} USD*\n\n` +
-        `សូមចុចប៊ូតុងខាងក្រោមដើម្បីបញ្ចូលលុយ (Top Up) តាម KHQR៖`,
+        `⚠️ *Insufficient Wallet Balance!*\n\n` +
+        `• Product Price: *$${product.price.toFixed(2)} USD*\n` +
+        `• Current Balance: *$${user.balance.toFixed(2)} USD*\n` +
+        `• Amount Needed: *$${shortfall} USD*\n\n` +
+        `Please top up your wallet using Bakong KHQR:`,
         {
           parse_mode: 'Markdown',
           ...Markup.inlineKeyboard([
-            [Markup.button.callback('💳 បញ្ចូលលុយ (Top Up)', 'menu_wallet')],
-            [Markup.button.callback('🔙 ត្រឡប់ក្រោយ', `prod_${product.id}`)]
+            [Markup.button.callback('💳 Top Up Wallet', 'menu_wallet')],
+            [Markup.button.callback('🔙 Back to Product', `prod_${product.id}`)]
           ])
         }
       );
@@ -176,7 +177,7 @@ export function createStoreBot() {
     // Process purchase
     const stockItem = db.consumeStockItem(product.id, ctx.from.id);
     if (!stockItem) {
-      return ctx.reply('❌ ការទិញបរាជ័យ ដោយសារមានអ្នកទិញមុនមួយជំហាន។ សូមព្យាយាមម្តងទៀត!');
+      return ctx.reply('❌ Purchase failed because the item was just claimed by another customer. Please try again!');
     }
 
     // Deduct balance
@@ -196,34 +197,34 @@ export function createStoreBot() {
     if (refResult) {
       bot.telegram.sendMessage(
         refResult.referrerId,
-        `🎉 *អ្នកទទួលបានប្រាក់កម្រៃជើងសារ (Referral Bonus)!*\n\n` +
-        `មិត្តដែលអ្នកបានណែនាំទើបតែបានទិញផលិតផល។ អ្នកទទួលបានប្រាក់កម្រៃ *$${refResult.commission.toFixed(2)} USD* ចូលក្នុងកាបូបរបស់អ្នក!`,
+        `🎉 *Referral Bonus Received!*\n\n` +
+        `A friend you invited just made a purchase. You earned *$${refResult.commission.toFixed(2)} USD* commission credited to your wallet!`,
         { parse_mode: 'Markdown' }
       ).catch(() => {});
     }
 
     // Deliver product to customer
     const deliveryMessage =
-      `🎉 *ការទិញទទួលបានជោគជ័យ (Purchase Successful)!*\n\n` +
-      `🛍️ *ទំនិញ៖* ${escapeMarkdown(product.name)}\n` +
-      `🧾 *លេខ Order៖* \`${order.id}\`\n` +
-      `💵 *កាត់ប្រាក់៖* $${product.price.toFixed(2)} USD\n\n` +
-      `🔐 *ព័ត៌មានអាខោន / LICENSE KEY របស់អ្នក៖*\n` +
+      `🎉 *Purchase Successful!*\n\n` +
+      `🛍️ *Product:* ${escapeMarkdown(product.name)}\n` +
+      `🧾 *Order ID:* \`${order.id}\`\n` +
+      `💵 *Amount Deducted:* $${product.price.toFixed(2)} USD\n\n` +
+      `🔐 *Your Account Credentials / License Key:*\n` +
       `\`\`\`\n${stockItem.content}\n\`\`\`\n\n` +
-      `⚠️ *ចំណាំ៖* សូមរក្សាទុកព័ត៌មានខាងលើឱ្យមានសុវត្ថិភាព។ អរគុណសម្រាប់ការគាំទ្រ!`;
+      `⚠️ *Note:* Please save these details safely. Thank you for shopping with us!`;
 
     await ctx.replyWithMarkdown(deliveryMessage, Markup.inlineKeyboard([
-      [Markup.button.callback('📦 មើលប្រវត្តិទិញ', 'menu_orders'), Markup.button.callback('🛍️ ទិញបន្ត', 'menu_categories')]
+      [Markup.button.callback('📦 Order History', 'menu_orders'), Markup.button.callback('🛍️ Continue Shopping', 'menu_categories')]
     ]));
 
     // Notify Admin / Channel
     const adminAlert =
-      `🚨 *មានការបញ្ជាទិញថ្មី (New Order Placed)!*\n\n` +
-      `• អតិថិជន៖ ${escapeMarkdown(ctx.from.first_name)} (@${ctx.from.username || 'NoUser'})\n` +
-      `• User ID៖ \`${ctx.from.id}\`\n` +
-      `• ទំនិញ៖ ${escapeMarkdown(product.name)}\n` +
-      `• តម្លៃ៖ *$${product.price.toFixed(2)} USD*\n` +
-      `• លេខ Order៖ \`${order.id}\``;
+      `🚨 *New Order Placed!*\n\n` +
+      `• Customer: ${escapeMarkdown(ctx.from.first_name)} (@${ctx.from.username || 'NoUser'})\n` +
+      `• User ID: \`${ctx.from.id}\`\n` +
+      `• Item: ${escapeMarkdown(product.name)}\n` +
+      `• Price: *$${product.price.toFixed(2)} USD*\n` +
+      `• Order ID: \`${order.id}\``;
 
     if (config.adminId) {
       bot.telegram.sendMessage(config.adminId, adminAlert, { parse_mode: 'Markdown' }).catch(() => {});
@@ -239,16 +240,16 @@ export function createStoreBot() {
     const user = db.getUser(ctx.from.id);
 
     const text =
-      `💳 *កាបូបលុយរបស់អ្នក (My Wallet)*\n\n` +
-      `• ឈ្មោះ៖ *${escapeMarkdown(user.firstName)}*\n` +
-      `• សមតុល្យបច្ចុប្បន្ន៖ *$${user.balance.toFixed(2)} USD*\n` +
-      `• បានចំណាយសរុប៖ *$${(user.totalSpent || 0).toFixed(2)} USD*\n\n` +
-      `ជ្រើសរើសចំនួនប្រាក់ដែលចង់បញ្ចូលតាម *Bakong KHQR* ស្វ័យប្រវត្តិ៖`;
+      `💳 *My Wallet & Balance*\n\n` +
+      `• Name: *${escapeMarkdown(user.firstName)}*\n` +
+      `• Current Balance: *$${user.balance.toFixed(2)} USD*\n` +
+      `• Total Spent: *$${(user.totalSpent || 0).toFixed(2)} USD*\n\n` +
+      `Select an amount to top up via automatic *Bakong KHQR*:`;
 
     const buttons = [
       [Markup.button.callback('💵 +$1.00', 'topup_1'), Markup.button.callback('💵 +$3.00', 'topup_3')],
       [Markup.button.callback('💵 +$5.00', 'topup_5'), Markup.button.callback('💵 +$10.00', 'topup_10')],
-      [Markup.button.callback('🔙 ត្រឡប់ក្រោយ', 'main_menu')]
+      [Markup.button.callback('🔙 Back to Main Menu', 'main_menu')]
     ];
 
     await ctx.editMessageText(text, { parse_mode: 'Markdown', ...Markup.inlineKeyboard(buttons) });
@@ -256,7 +257,7 @@ export function createStoreBot() {
 
   // Topup KHQR Generation
   bot.action(/^topup_([0-9.]+)$/, async (ctx) => {
-    await ctx.answerCbQuery('កំពុងបង្កើតកូដ KHQR...').catch(() => {});
+    await ctx.answerCbQuery('Generating KHQR code...').catch(() => {});
     const amount = parseFloat(ctx.match[1]);
     const billNo = `KHQR${Date.now().toString().slice(-6)}`;
 
@@ -270,15 +271,15 @@ export function createStoreBot() {
     const qrData = await generateKHQR({ amount, billNo });
 
     const caption =
-      `🇰🇭 *ទូទាត់ប្រាក់តាមរយៈ BAKONG KHQR*\n\n` +
-      `• ម្ចាស់គណនី៖ *${escapeMarkdown(qrData.merchantName)}*\n` +
-      `• ទឹកប្រាក់៖ *$${amount.toFixed(2)} USD*\n` +
-      `• លេខ Bill៖ \`${billNo}\`\n\n` +
-      `📌 *របៀបទូទាត់៖*\n` +
-      `1. រក្សាទុករូបភាព QR Code ឬ Screenshot\n` +
-      `2. បើកកម្មវិធីធនាគារណាក៏បាន (ABA, Bakong, ACLEDA, Wing, etc.)\n` +
-      `3. ស្កេន និងផ្ទេរប្រាក់ $${amount.toFixed(2)} USD ឱ្យបានត្រឹមត្រូវ\n` +
-      `4. ប្រព័ន្ធនឹងបញ្ចូលប្រាក់ស្វ័យប្រវត្តក្នុងរយៈពេល ១ នាទី!`;
+      `🇰🇭 *Pay via BAKONG KHQR*\n\n` +
+      `• Merchant: *${escapeMarkdown(qrData.merchantName)}*\n` +
+      `• Amount: *$${amount.toFixed(2)} USD*\n` +
+      `• Bill No: \`${billNo}\`\n\n` +
+      `📌 *Instructions:*\n` +
+      `1. Save or screenshot this QR code\n` +
+      `2. Open your mobile banking app (ABA, Bakong, ACLEDA, Wing, Canadia, etc.)\n` +
+      `3. Scan the QR code and confirm the $${amount.toFixed(2)} USD transfer\n` +
+      `4. Your wallet will update automatically within 1 minute!`;
 
     await ctx.replyWithPhoto(
       { source: qrData.qrBuffer },
@@ -286,32 +287,31 @@ export function createStoreBot() {
         caption,
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
-          [Markup.button.callback('🔄 ពិនិត្យការទូទាត់ (Check Status)', `checkpay_${billNo}`)],
-          [Markup.button.callback('🔙 ត្រឡប់ទៅកាបូប', 'menu_wallet')]
+          [Markup.button.callback('🔄 Check Status', `checkpay_${billNo}`)],
+          [Markup.button.callback('🔙 Back to Wallet', 'menu_wallet')]
         ])
       }
     );
   });
 
-  // Manual / Immediate payment verification check
+  // Manual payment verification check
   bot.action(/^checkpay_(.+)$/, async (ctx) => {
     const billNo = ctx.match[1];
-    await ctx.answerCbQuery('កំពុងផ្ទៀងផ្ទាត់...').catch(() => {});
+    await ctx.answerCbQuery('Verifying payment...').catch(() => {});
 
-    // In demo/test mode, clicking approve approves it instantly for smooth testing
     const approved = await verifyPayment(billNo, bot);
     if (approved) {
       await ctx.reply(
-        `✅ *ការទូទាត់ជោគជ័យ!*\n\n` +
-        `ប្រាក់ *$${approved.amount.toFixed(2)} USD* ត្រូវបានបញ្ចូលទៅក្នុងកាបូបរបស់អ្នករួចរាល់ហើយ!\n` +
-        `ឥឡូវនេះអ្នកអាចចូលទៅទិញទំនិញបាន។`,
+        `✅ *Payment Confirmed!*\n\n` +
+        `*$${approved.amount.toFixed(2)} USD* has been added to your wallet balance!\n` +
+        `You can now proceed to shop.`,
         {
           parse_mode: 'Markdown',
-          ...Markup.inlineKeyboard([[Markup.button.callback('🛍️ ទៅកាន់ហាងទំនិញ', 'menu_categories')]])
+          ...Markup.inlineKeyboard([[Markup.button.callback('🛍️ Go to Shop', 'menu_categories')]])
         }
       );
     } else {
-      await ctx.reply('⏳ មិនទាន់ទទួលបានទិន្នន័យផ្ទេរប្រាក់ពីធនាគារនៅឡើយទេ។ សូមរង់ចាំបន្តិច ឬព្យាយាមម្តងទៀត។');
+      await ctx.reply('⏳ No transaction found yet. Please complete the transfer in your bank app and try again in a few moments.');
     }
   });
 
@@ -322,27 +322,27 @@ export function createStoreBot() {
 
     if (orders.length === 0) {
       return ctx.editMessageText(
-        `📦 *ប្រវត្តិការបញ្ជាទិញ (Order History)*\n\nអ្នកមិនទាន់មានប្រវត្តិទិញទំនិញនៅឡើយទេ។`,
+        `📦 *Order History*\n\nYou haven't placed any orders yet.`,
         {
           parse_mode: 'Markdown',
           ...Markup.inlineKeyboard([
-            [Markup.button.callback('🛍️ ទៅមើលទំនិញ', 'menu_categories')],
-            [Markup.button.callback('🔙 ត្រឡប់ក្រោយ', 'main_menu')]
+            [Markup.button.callback('🛍️ Explore Shop', 'menu_categories')],
+            [Markup.button.callback('🔙 Back to Main Menu', 'main_menu')]
           ])
         }
       );
     }
 
-    let text = `📦 *ប្រវត្តិការបញ្ជាទិញរបស់អ្នក (${orders.length} ទំនិញ)៖*\n\n`;
+    let text = `📦 *Your Order History (${orders.length} items):*\n\n`;
     orders.slice(0, 5).forEach((ord, index) => {
       text += `*${index + 1}. ${escapeMarkdown(ord.productName)}*\n`;
-      text += `• លេខ Order: \`${ord.id}\` | តម្លៃ: $${ord.price.toFixed(2)}\n`;
-      text += `• ព័ត៌មាន Account/Key:\n\`\`\`\n${ord.content}\n\`\`\`\n\n`;
+      text += `• Order ID: \`${ord.id}\` | Price: $${ord.price.toFixed(2)}\n`;
+      text += `• Credentials / Key:\n\`\`\`\n${ord.content}\n\`\`\`\n\n`;
     });
 
     await ctx.editMessageText(text, {
       parse_mode: 'Markdown',
-      ...Markup.inlineKeyboard([[Markup.button.callback('🔙 ត្រឡប់ក្រោយ', 'main_menu')]])
+      ...Markup.inlineKeyboard([[Markup.button.callback('🔙 Back to Main Menu', 'main_menu')]])
     });
   });
 
@@ -352,18 +352,18 @@ export function createStoreBot() {
     const stats = db.getReferralStats(ctx.from.id);
 
     const refText =
-      `👥 *កម្មវិធីណែនាំមិត្តភក្តិ (Referral Program)*\n\n` +
-      `ចែករំលែក Link របស់អ្នកទៅកាន់មិត្តភក្តិ ឬតាមបណ្តាញសង្គម ដើម្បីទទួលបានកម្រៃជើងសារ *${stats.commissionPercent}%* រាល់ពេលដែលពួកគេទិញទំនិញ!\n\n` +
-      `📊 *ស្ថិតិរបស់អ្នក៖*\n` +
-      `• ចំនួនមិត្តដែលបានចុះឈ្មោះ៖ *${stats.totalInvited} នាក់*\n` +
-      `• ប្រាក់កម្រៃជើងសារដែលទទួលបាន៖ *$${stats.totalCommission.toFixed(2)} USD*\n\n` +
-      `🔗 *Link ណែនាំផ្ទាល់ខ្លួនរបស់អ្នក៖*\n` +
+      `👥 *Referral Affiliate Program*\n\n` +
+      `Share your personal link with friends or on social media to earn a *${stats.commissionPercent}%* commission on every purchase they make!\n\n` +
+      `📊 *Your Referral Stats:*\n` +
+      `• Friends Invited: *${stats.totalInvited}*\n` +
+      `• Total Commission Earned: *$${stats.totalCommission.toFixed(2)} USD*\n\n` +
+      `🔗 *Your Unique Referral Link:*\n` +
       `\`${stats.referralLink}\`\n\n` +
-      `ចុច Copy Link ខាងលើផ្ញើទៅកាន់មិត្តរបស់អ្នកឥឡូវនេះ!`;
+      `Copy and share the link above to start earning!`;
 
     await ctx.editMessageText(refText, {
       parse_mode: 'Markdown',
-      ...Markup.inlineKeyboard([[Markup.button.callback('🔙 ត្រឡប់ក្រោយ', 'main_menu')]])
+      ...Markup.inlineKeyboard([[Markup.button.callback('🔙 Back to Main Menu', 'main_menu')]])
     });
   });
 
@@ -371,16 +371,16 @@ export function createStoreBot() {
   bot.action('menu_voice', async (ctx) => {
     await ctx.answerCbQuery().catch(() => {});
     const voiceText =
-      `🎤 *សេវាកម្ម Voice AI (TTS & STT)*\n\n` +
-      `1️⃣ *Text-To-Speech (បង្កើតសំឡេងនិយាយ)៖*\n` +
-      `វាយពាក្យបញ្ជា \`/tts <អត្ថបទរបស់អ្នក>\`\n` +
-      `ឧទាហរណ៍៖ \`/tts សួស្តី សូមស្វាគមន៍មកកាន់ហាងរបស់យើង\`\n\n` +
-      `2️⃣ *Speech-To-Text (បំប្លែងសំឡេងជាអក្សរ)៖*\n` +
-      `គ្រាន់តែផ្ញើ Voice Message (សារជាសំឡេង) មកក្នុង Chat នេះ នោះ Bot នឹងបម្លែងជាអក្សរជូនភ្លាមៗ!`;
+      `🎤 *Voice AI Services (TTS & STT)*\n\n` +
+      `1️⃣ *Text-To-Speech (TTS):*\n` +
+      `Type the command \`/tts <your text>\`\n` +
+      `Example: \`/tts Welcome to our digital store!\`\n\n` +
+      `2️⃣ *Speech-To-Text (STT):*\n` +
+      `Simply send a Voice Note into this chat, and the bot will transcribe it to text instantly!`;
 
     await ctx.editMessageText(voiceText, {
       parse_mode: 'Markdown',
-      ...Markup.inlineKeyboard([[Markup.button.callback('🔙 ត្រឡប់ក្រោយ', 'main_menu')]])
+      ...Markup.inlineKeyboard([[Markup.button.callback('🔙 Back to Main Menu', 'main_menu')]])
     });
   });
 
@@ -388,22 +388,22 @@ export function createStoreBot() {
   bot.command('tts', async (ctx) => {
     const text = ctx.message.text.replace('/tts', '').trim();
     if (!text) {
-      return ctx.reply('⚠️ សូមបញ្ចូលអត្ថបទដែលអ្នកចង់បង្កើតជាសំឡេង។\nឧទាហរណ៍៖ `/tts សួស្តីបងប្អូនទាំងអស់គ្នា`', { parse_mode: 'Markdown' });
+      return ctx.reply('⚠️ Please provide the text you want converted to speech.\nExample: `/tts Hello everyone, welcome to our store!`', { parse_mode: 'Markdown' });
     }
 
-    const waitMsg = await ctx.reply('🎙️ កំពុងបង្កើតសំឡេង សូមរង់ចាំ...');
+    const waitMsg = await ctx.reply('🎙️ Generating voice audio, please wait...');
     try {
-      const audioBuffer = await textToSpeech(text, 'km');
+      const audioBuffer = await textToSpeech(text, 'en');
       await ctx.replyWithVoice({ source: audioBuffer });
       await ctx.deleteMessage(waitMsg.message_id).catch(() => {});
     } catch (err) {
-      await ctx.telegram.editMessageText(ctx.chat.id, waitMsg.message_id, null, `❌ កំហុសក្នុងការបង្កើតសំឡេង៖ ${err.message}`);
+      await ctx.telegram.editMessageText(ctx.chat.id, waitMsg.message_id, null, `❌ Failed to generate voice: ${err.message}`);
     }
   });
 
   // STT Voice Note Handler
   bot.on('voice', async (ctx) => {
-    const statusMsg = await ctx.reply('🎧 កំពុងស្តាប់ និងបម្លែងសំឡេងរបស់អ្នកជាអក្សរ...');
+    const statusMsg = await ctx.reply('🎧 Listening and transcribing your voice message...');
     try {
       const fileId = ctx.message.voice.file_id;
       const fileLink = await ctx.telegram.getFileLink(fileId);
@@ -416,11 +416,11 @@ export function createStoreBot() {
         ctx.chat.id,
         statusMsg.message_id,
         null,
-        `📝 *អត្ថបទដែលបម្លែងបាន (Transcription)៖*\n\n"${transcript}"`,
+        `📝 *Voice Transcription:*\n\n"${transcript}"`,
         { parse_mode: 'Markdown' }
       );
     } catch (err) {
-      await ctx.telegram.editMessageText(ctx.chat.id, statusMsg.message_id, null, `❌ មិនអាចបកប្រែសំឡេងបានទេ៖ ${err.message}`);
+      await ctx.telegram.editMessageText(ctx.chat.id, statusMsg.message_id, null, `❌ Could not transcribe audio: ${err.message}`);
     }
   });
 
@@ -428,25 +428,26 @@ export function createStoreBot() {
   bot.action('menu_admin', async (ctx) => {
     await ctx.answerCbQuery().catch(() => {});
     if (!config.adminId || String(ctx.from.id) !== String(config.adminId)) {
-      return ctx.reply('⛔ អ្នកគ្មានសិទ្ធិជា Admin ទេ។');
+      return ctx.reply('⛔ Unauthorized: You do not have admin access.');
     }
 
     const metrics = db.getDashboardMetrics();
     const adminText =
-      `👑 *ផ្ទាំងគ្រប់គ្រង ADMIN (Control Panel)*\n\n` +
-      `• ចំនួនអតិថិជនសរុប៖ *${metrics.totalUsers} នាក់*\n` +
-      `• ការបញ្ជាទិញសរុប៖ *${metrics.totalOrders} Orders*\n` +
-      `• ចំណូលសរុបទូទាត់៖ *$${metrics.totalRevenue.toFixed(2)} USD*\n` +
-      `• ចំនួន Account ក្នុងស្តុក៖ *${metrics.availableStockCount} Items*\n\n` +
-      `🛠️ *ពាក្យបញ្ជា Admin រហ័ស៖*\n` +
-      `• \`/broadcast <អត្ថបទ>\` : ផ្ញើសារដំណឹងទៅសមាជិកទាំងអស់\n` +
-      `• \`/addstock <prod_id> <user:pass>\` : បញ្ចូលស្តុកទំនិញ`;
+      `👑 *ADMIN Control Panel*\n\n` +
+      `• Total Customers: *${metrics.totalUsers}*\n` +
+      `• Total Orders: *${metrics.totalOrders}*\n` +
+      `• Total Revenue: *$${metrics.totalRevenue.toFixed(2)} USD*\n` +
+      `• Total Downloads: *${metrics.totalDownloads || 0}*\n` +
+      `• Items in Stock: *${metrics.availableStockCount}*\n\n` +
+      `🛠️ *Quick Admin Commands:*\n` +
+      `• \`/broadcast <message>\` : Broadcast message to all users\n` +
+      `• \`/addstock <prod_id> <user:pass>\` : Add stock item`;
 
     await ctx.editMessageText(adminText, {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
-        [Markup.button.callback('📢 ផ្ញើសារដំណឹង (Broadcast)', 'admin_broadcast_guide')],
-        [Markup.button.callback('🔙 ត្រឡប់ក្រោយ', 'main_menu')]
+        [Markup.button.callback('📢 Broadcast Guide', 'admin_broadcast_guide')],
+        [Markup.button.callback('🔙 Back to Main Menu', 'main_menu')]
       ])
     });
   });
@@ -457,22 +458,21 @@ export function createStoreBot() {
 
     const message = ctx.message.text.replace('/broadcast', '').trim();
     if (!message) {
-      return ctx.reply('⚠️ សូមវាយអត្ថបទដែលចង់ផ្សាយ។\nឧទាហរណ៍៖ `/broadcast 🎉 ប្រូម៉ូសិនពិសេស បញ្ចុះតម្លៃ 20% លើ Netflix!`', { parse_mode: 'Markdown' });
+      return ctx.reply('⚠️ Please provide the message content to broadcast.\nExample: `/broadcast 🎉 Special 20% discount on Netflix accounts today!`', { parse_mode: 'Markdown' });
     }
 
     const users = db.getAllUsers();
     let sentCount = 0;
-    const alertMsg = await ctx.reply(`📢 កំពុងចាប់ផ្តើមផ្ញើសារទៅកាន់សមាជិក ${users.length} នាក់...`);
+    const alertMsg = await ctx.reply(`📢 Starting broadcast to ${users.length} members...`);
 
     for (const u of users) {
       try {
         await bot.telegram.sendMessage(
           u.telegramId,
-          `📢 *សេចក្តីជូនដំណឹងពីហាង (Announcement)*\n\n${message}`,
+          `📢 *Announcement*\n\n${message}`,
           { parse_mode: 'Markdown' }
         );
         sentCount++;
-        // Delay 40ms to respect Telegram flood rate limit
         await new Promise(r => setTimeout(r, 40));
       } catch (err) {
         // user may have blocked bot
@@ -483,7 +483,7 @@ export function createStoreBot() {
       ctx.chat.id,
       alertMsg.message_id,
       null,
-      `✅ បានផ្ញើសារដំណឹងជោគជ័យទៅកាន់សមាជិកចំនួន *${sentCount}/${users.length}* នាក់!`,
+      `✅ Broadcast successfully sent to *${sentCount}/${users.length}* members!`,
       { parse_mode: 'Markdown' }
     );
   });
@@ -493,15 +493,16 @@ export function createStoreBot() {
     await ctx.answerCbQuery().catch(() => {});
     const user = db.getUser(ctx.from.id);
     const welcomeText =
-      `👋 *សូមស្វាគមន៍មកកាន់ ${escapeMarkdown(config.bakong.merchantName)}!*\n\n` +
-      `👤 *គណនីរបស់អ្នក៖* *${escapeMarkdown(user.firstName)}*\n` +
-      `• សមតុល្យកាបូប៖ *$${user.balance.toFixed(2)} USD*\n\n` +
-      `សូមជ្រើសរើសមុខងារខាងក្រោម៖`;
+      `👋 *Welcome to ${escapeMarkdown(config.bakong.merchantName)}!*\n\n` +
+      `👤 *Your Account Profile:* *${escapeMarkdown(user.firstName)}*\n` +
+      `• Wallet Balance: *$${user.balance.toFixed(2)} USD*\n` +
+      `• Total Downloads: *${user.downloadCount || 0} media*\n\n` +
+      `Please choose an option below:`;
 
     const buttons = [
-      [Markup.button.callback('🛍️ មើលទំនិញ (Shop)', 'menu_categories'), Markup.button.callback('💳 កាបូបលុយ (Wallet)', 'menu_wallet')],
-      [Markup.button.callback('📦 ប្រវត្តិទិញ (Orders)', 'menu_orders'), Markup.button.callback('👥 ណែនាំមិត្ត (Referral)', 'menu_referral')],
-      [Markup.button.callback('🎤 Voice AI (TTS & STT)', 'menu_voice'), Markup.button.callback('📥 ទាញយកវីដេអូ (Downloader)', 'menu_downloader')]
+      [Markup.button.callback('🛍️ Shop Products', 'menu_categories'), Markup.button.callback('💳 My Wallet', 'menu_wallet')],
+      [Markup.button.callback('📦 Order History', 'menu_orders'), Markup.button.callback('👥 Referral Program', 'menu_referral')],
+      [Markup.button.callback('🎤 Voice AI (TTS/STT)', 'menu_voice'), Markup.button.callback('📥 Video Downloader', 'menu_downloader')]
     ];
 
     if (config.adminId && String(ctx.from.id) === String(config.adminId)) {
@@ -531,27 +532,29 @@ export function createStoreBot() {
   // Downloader Menu Guide
   bot.action('menu_downloader', async (ctx) => {
     await ctx.answerCbQuery().catch(() => {});
+    const user = db.getUser(ctx.from.id);
     const guideText =
-      `📥 *ប្រព័ន្ធទាញយកវីដេអូគ្រប់វេបសាយ (All-in-One Video Downloader)*\n\n` +
-      `អ្នកអាចទាញយកវីដេអូ និងសំឡេងពីគ្រប់បណ្តាញសង្គមដោយឥតគិតថ្លៃ និងគ្មាន Watermark!\n\n` +
-      `🌐 *គាំទ្រគ្រប់វេបសាយធំៗ (Supported Sites)៖*\n` +
-      `• *TikTok* (គ្មាន Watermark / No Watermark)\n` +
+      `📥 *All-in-One Video & Audio Downloader*\n\n` +
+      `👤 *Your Download Stats:* *${(user && user.downloadCount) || 0}* media files\n\n` +
+      `Download videos and audio from all popular social media platforms without watermarks!\n\n` +
+      `🌐 *Supported Sites:*\n` +
+      `• *TikTok* (No Watermark)\n` +
       `• *YouTube & Shorts*\n` +
       `• *Facebook* (Reels & Watch)\n` +
       `• *Instagram* (Reels & Posts)\n` +
       `• *Twitter / X*\n` +
       `• *Threads, Reddit, Pinterest, Douyin...*\n` +
-      `• និងវេបសាយជាង 1000+ ទៀត!\n\n` +
-      `💡 *របៀបប្រើប្រាស់ងាយៗ៖*\n` +
-      `1️⃣ គ្រាន់តែ Copy Link វីដេអូដែលចង់បាន\n` +
-      `2️⃣ ផ្ញើ (Paste) Link ចូលក្នុង Chat នេះផ្ទាល់\n` +
-      `3️⃣ ឬប្រើពាក្យបញ្ជា \`/dl <link>\` (វីដេអូ)\n` +
-      `4️⃣ ឬប្រើពាក្យបញ្ជា \`/mp3 <link>\` (សំឡេង MP3)`;
+      `• And 1000+ other websites!\n\n` +
+      `💡 *How to use:*\n` +
+      `1️⃣ Copy the video link from any app or website\n` +
+      `2️⃣ Paste the link directly into this chat\n` +
+      `3️⃣ Or use command: \`/dl <link>\` (Video)\n` +
+      `4️⃣ Or use command: \`/mp3 <link>\` (Audio MP3)`;
 
     await ctx.editMessageText(guideText, {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
-        [Markup.button.callback('🔙 ត្រឡប់ក្រោយ (Main Menu)', 'main_menu')]
+        [Markup.button.callback('🔙 Back to Main Menu', 'main_menu')]
       ])
     });
   });
@@ -560,26 +563,38 @@ export function createStoreBot() {
   async function handleVideoDownload(ctx, rawUrl) {
     const url = extractUrl(rawUrl);
     if (!url) {
-      return ctx.reply('⚠️ សូមបញ្ចូល Link វីដេអូឱ្យបានត្រឹមត្រូវ។\nឧទាហរណ៍៖ `/dl https://vt.tiktok.com/...`', { parse_mode: 'Markdown' });
+      return ctx.reply('⚠️ Please provide a valid video link.\nExample: `/dl https://vt.tiktok.com/...`', { parse_mode: 'Markdown' });
     }
 
-    const waitMsg = await ctx.reply('⏳ កំពុងដំណើរការទាញយកវីដេអូ... សូមរង់ចាំបន្តិច');
+    const waitMsg = await ctx.reply('⏳ Downloading video... Please wait a moment');
     let videoResult = null;
 
     try {
       videoResult = await downloadVideo(url);
       const shortId = cacheUrl(url);
 
+      // Record download analytics
+      db.recordDownload({
+        telegramId: ctx.from?.id,
+        username: ctx.from?.username,
+        firstName: ctx.from?.first_name,
+        url,
+        title: videoResult.title,
+        platform: videoResult.platform,
+        type: 'video',
+        sizeBytes: videoResult.sizeBytes
+      });
+
       const caption =
         `🎬 *${escapeMarkdown(videoResult.title)}*\n\n` +
-        `🌐 *ប្រភព៖* ${videoResult.platform}\n` +
-        `👤 *អ្នកបង្ហោះ៖* ${escapeMarkdown(videoResult.uploader)}\n` +
-        `⏱️ *រយៈពេល៖* ${videoResult.durationFormatted}\n` +
-        `📦 *ទំហំ៖* ${(videoResult.sizeBytes / (1024 * 1024)).toFixed(1)} MB\n\n` +
-        `🤖 _ទាញយកដោយ @${config.botUsername || 'StoreBot'}_`;
+        `🌐 *Platform:* ${videoResult.platform}\n` +
+        `👤 *Uploader:* ${escapeMarkdown(videoResult.uploader)}\n` +
+        `⏱️ *Duration:* ${videoResult.durationFormatted}\n` +
+        `📦 *Size:* ${(videoResult.sizeBytes / (1024 * 1024)).toFixed(1)} MB\n\n` +
+        `🤖 _Downloaded via @${config.botUsername || 'StoreBot'}_`;
 
       const buttons = [
-        [Markup.button.callback('🎵 ទាញយកតែសំឡេង (MP3)', `dl_mp3_${shortId}`)]
+        [Markup.button.callback('🎵 Download Audio (MP3)', `dl_mp3_${shortId}`)]
       ];
 
       await ctx.replyWithVideo(
@@ -602,13 +617,13 @@ export function createStoreBot() {
           ctx.chat.id,
           waitMsg.message_id,
           null,
-          `⚠️ *វីដេអូនេះមានទំហំធំជាង 50MB!*\n\n` +
-          `Telegram Bot អនុញ្ញាតឱ្យផ្ញើវីដេអូត្រឹម 50MB ប៉ុណ្ណោះ។\n` +
-          `💡 លោកអ្នកអាចទាញយកតែសំឡេង MP3 ដោយចុចប៊ូតុងខាងក្រោម៖`,
+          `⚠️ *Video file exceeds 50MB!*\n\n` +
+          `Telegram bots can only upload files up to 50MB.\n` +
+          `💡 You can download the audio MP3 version instead by clicking below:`,
           {
             parse_mode: 'Markdown',
             ...Markup.inlineKeyboard([
-              [Markup.button.callback('🎵 ទាញយកជាសំឡេង (MP3)', `dl_mp3_${shortId}`)]
+              [Markup.button.callback('🎵 Download Audio (MP3)', `dl_mp3_${shortId}`)]
             ])
           }
         );
@@ -617,7 +632,7 @@ export function createStoreBot() {
           ctx.chat.id,
           waitMsg.message_id,
           null,
-          `❌ *មិនអាចទាញយកវីដេអូបានទេ*\n\nមូលហេតុ៖ ${escapeMarkdown(err.message)}\n\n💡 សូមពិនិត្យមើល Link ឬសាកល្បងម្ដងទៀត។`,
+          `❌ *Could not download video*\n\nReason: ${escapeMarkdown(err.message)}\n\n💡 Please check the link or try again.`,
           { parse_mode: 'Markdown' }
         );
       }
@@ -632,22 +647,34 @@ export function createStoreBot() {
   async function handleAudioDownload(ctx, rawUrl) {
     const url = extractUrl(rawUrl);
     if (!url) {
-      return ctx.reply('⚠️ សូមបញ្ចូល Link វីដេអូឱ្យបានត្រឹមត្រូវ។\nឧទាហរណ៍៖ `/mp3 https://www.youtube.com/...`', { parse_mode: 'Markdown' });
+      return ctx.reply('⚠️ Please provide a valid video link.\nExample: `/mp3 https://www.youtube.com/...`', { parse_mode: 'Markdown' });
     }
 
-    const waitMsg = await ctx.reply('🎵 កំពុងទាញយក និងបម្លែងជាសំឡេង MP3... សូមរង់ចាំបន្តិច');
+    const waitMsg = await ctx.reply('🎵 Extracting and downloading MP3 audio... Please wait a moment');
     let audioResult = null;
 
     try {
       audioResult = await downloadAudio(url);
 
+      // Record audio download analytics
+      db.recordDownload({
+        telegramId: ctx.from?.id,
+        username: ctx.from?.username,
+        firstName: ctx.from?.first_name,
+        url,
+        title: audioResult.title,
+        platform: audioResult.platform,
+        type: 'audio',
+        sizeBytes: audioResult.sizeBytes
+      });
+
       const caption =
         `🎵 *${escapeMarkdown(audioResult.title)}*\n\n` +
-        `🌐 *ប្រភព៖* ${audioResult.platform}\n` +
-        `👤 *សិល្បករ/អ្នកបង្ហោះ៖* ${escapeMarkdown(audioResult.artist)}\n` +
-        `⏱️ *រយៈពេល៖* ${audioResult.durationFormatted}\n` +
-        `📦 *ទំហំ៖* ${(audioResult.sizeBytes / (1024 * 1024)).toFixed(1)} MB\n\n` +
-        `🤖 _ទាញយកដោយ @${config.botUsername || 'StoreBot'}_`;
+        `🌐 *Platform:* ${audioResult.platform}\n` +
+        `👤 *Artist/Uploader:* ${escapeMarkdown(audioResult.artist)}\n` +
+        `⏱️ *Duration:* ${audioResult.durationFormatted}\n` +
+        `📦 *Size:* ${(audioResult.sizeBytes / (1024 * 1024)).toFixed(1)} MB\n\n` +
+        `🤖 _Downloaded via @${config.botUsername || 'StoreBot'}_`;
 
       await ctx.replyWithAudio(
         { source: audioResult.filePath },
@@ -666,7 +693,7 @@ export function createStoreBot() {
         ctx.chat.id,
         waitMsg.message_id,
         null,
-        `❌ *មិនអាចទាញយកសំឡេងបានទេ*\n\nមូលហេតុ៖ ${escapeMarkdown(err.message)}`,
+        `❌ *Could not extract audio*\n\nReason: ${escapeMarkdown(err.message)}`,
         { parse_mode: 'Markdown' }
       );
     } finally {
@@ -681,7 +708,7 @@ export function createStoreBot() {
     const text = ctx.message.text.replace(/^\/(dl|download|video)/i, '').trim();
     if (!text) {
       return ctx.reply(
-        `📥 *សូមផ្ញើ Link វីដេអូជាមួយពាក្យបញ្ជា*\n\nឧទាហរណ៍៖\n\`/dl https://vt.tiktok.com/...\`\n\`/dl https://youtu.be/...\`\n\`/dl https://www.facebook.com/.../videos/...\``,
+        `📥 *Please provide a video link with the command*\n\nExample:\n\`/dl https://vt.tiktok.com/...\`\n\`/dl https://youtu.be/...\`\n\`/dl https://www.facebook.com/.../videos/...\``,
         { parse_mode: 'Markdown' }
       );
     }
@@ -692,7 +719,7 @@ export function createStoreBot() {
     const text = ctx.message.text.replace(/^\/(mp3|audio|music)/i, '').trim();
     if (!text) {
       return ctx.reply(
-        `🎵 *សូមផ្ញើ Link ជាមួយពាក្យបញ្ជាដើម្បីទាញយក MP3*\n\nឧទាហរណ៍៖\n\`/mp3 https://youtu.be/...\``,
+        `🎵 *Please provide a video link to extract MP3*\n\nExample:\n\`/mp3 https://youtu.be/...\``,
         { parse_mode: 'Markdown' }
       );
     }
@@ -700,11 +727,11 @@ export function createStoreBot() {
   });
 
   bot.action(/^dl_mp3_(.+)$/, async (ctx) => {
-    await ctx.answerCbQuery('🎵 កំពុងដំណើរការទាញយក MP3...').catch(() => {});
+    await ctx.answerCbQuery('🎵 Downloading MP3...').catch(() => {});
     const shortId = ctx.match[1];
     const cached = urlCache.get(shortId);
     if (!cached || !cached.url) {
-      return ctx.reply('⚠️ Link នេះបានផុតកំណត់ហើយ។ សូមផ្ញើ Link វីដេអូមកម្តងទៀត។');
+      return ctx.reply('⚠️ This download session has expired. Please send the video link again.');
     }
     await handleAudioDownload(ctx, cached.url);
   });
@@ -712,17 +739,17 @@ export function createStoreBot() {
   // Help command
   bot.command('help', async (ctx) => {
     const helpText =
-      `📖 *សៀវភៅណែនាំពាក្យបញ្ជា Bot (Commands Guide)*\n\n` +
-      `🛍️ *ផ្នែកហាង & កាបូបលុយ៖*\n` +
-      `• /start : បើកផ្ទាំង Menu មេ\n` +
-      `• /help : មើលបញ្ជីពាក្យបញ្ជាទាំងអស់\n\n` +
-      `📥 *ផ្នែកទាញយកវីដេអូ & MP3 (Downloader)៖*\n` +
-      `• \`/dl <link>\` : ទាញយកវីដេអូ (TikTok, YouTube, FB, IG, X, Reddit...)\n` +
-      `• \`/mp3 <link>\` : ទាញយកតែសំឡេងជា MP3\n` +
-      `• ឬគ្រាន់តែ Copy & Paste Link ចូលក្នុង Chat នេះផ្ទាល់!\n\n` +
-      `🎤 *ផ្នែក Voice AI៖*\n` +
-      `• \`/tts <អត្ថបទ>\` : បង្កើតសំឡេងនិយាយជាភាសាខ្មែរ\n` +
-      `• ផ្ញើសារសំឡេង (Voice note) : បម្លែងសំឡេងជាអក្សរ`;
+      `📖 *Bot Commands & User Guide*\n\n` +
+      `🛍️ *Shop & Wallet:*\n` +
+      `• /start : Open the Main Menu\n` +
+      `• /help : Show this commands guide\n\n` +
+      `📥 *Video & Audio Downloader:*\n` +
+      `• \`/dl <link>\` : Download video (TikTok, YouTube, FB, IG, X, Reddit...)\n` +
+      `• \`/mp3 <link>\` : Download audio only as MP3\n` +
+      `• Or simply paste any video URL directly into this chat!\n\n` +
+      `🎤 *Voice AI:*\n` +
+      `• \`/tts <text>\` : Convert text into voice speech\n` +
+      `• Send voice note : Transcribe speech into text`;
 
     await ctx.replyWithMarkdown(helpText);
   });
@@ -746,4 +773,3 @@ export function createStoreBot() {
 function escapeMarkdown(text = '') {
   return String(text).replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
 }
-
