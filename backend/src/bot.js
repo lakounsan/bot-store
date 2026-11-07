@@ -3,6 +3,11 @@ import { config } from './config.js';
 import { db } from './db.js';
 import { generateKHQR, verifyPayment } from './services/paymentService.js';
 import { textToSpeech, speechToText } from './services/voiceService.js';
+import {
+  extractUrl,
+  downloadVideo,
+  downloadAudio
+} from './services/videoDownloaderService.js';
 
 export function createStoreBot() {
   if (!config.botToken) {
@@ -55,7 +60,7 @@ export function createStoreBot() {
     const buttons = [
       [Markup.button.callback('🛍️ មើលទំនិញ (Shop)', 'menu_categories'), Markup.button.callback('💳 កាបូបលុយ (Wallet)', 'menu_wallet')],
       [Markup.button.callback('📦 ប្រវត្តិទិញ (Orders)', 'menu_orders'), Markup.button.callback('👥 ណែនាំមិត្ត (Referral)', 'menu_referral')],
-      [Markup.button.callback('🎤 Voice AI (TTS & STT)', 'menu_voice')]
+      [Markup.button.callback('🎤 Voice AI (TTS & STT)', 'menu_voice'), Markup.button.callback('📥 ទាញយកវីដេអូ (Downloader)', 'menu_downloader')]
     ];
 
     if (config.adminId && String(ctx.from.id) === String(config.adminId)) {
@@ -496,7 +501,7 @@ export function createStoreBot() {
     const buttons = [
       [Markup.button.callback('🛍️ មើលទំនិញ (Shop)', 'menu_categories'), Markup.button.callback('💳 កាបូបលុយ (Wallet)', 'menu_wallet')],
       [Markup.button.callback('📦 ប្រវត្តិទិញ (Orders)', 'menu_orders'), Markup.button.callback('👥 ណែនាំមិត្ត (Referral)', 'menu_referral')],
-      [Markup.button.callback('🎤 Voice AI (TTS & STT)', 'menu_voice')]
+      [Markup.button.callback('🎤 Voice AI (TTS & STT)', 'menu_voice'), Markup.button.callback('📥 ទាញយកវីដេអូ (Downloader)', 'menu_downloader')]
     ];
 
     if (config.adminId && String(ctx.from.id) === String(config.adminId)) {
@@ -504,6 +509,235 @@ export function createStoreBot() {
     }
 
     await ctx.editMessageText(welcomeText, { parse_mode: 'Markdown', ...Markup.inlineKeyboard(buttons) });
+  });
+
+  // --- All-in-One Video & Audio Downloader System ---
+  const urlCache = new Map();
+
+  function cacheUrl(url) {
+    const id = Math.random().toString(36).slice(2, 10);
+    urlCache.set(id, { url, time: Date.now() });
+    if (urlCache.size > 200) {
+      const now = Date.now();
+      for (const [key, val] of urlCache.entries()) {
+        if (now - val.time > 2 * 60 * 60 * 1000) {
+          urlCache.delete(key);
+        }
+      }
+    }
+    return id;
+  }
+
+  // Downloader Menu Guide
+  bot.action('menu_downloader', async (ctx) => {
+    await ctx.answerCbQuery().catch(() => {});
+    const guideText =
+      `📥 *ប្រព័ន្ធទាញយកវីដេអូគ្រប់វេបសាយ (All-in-One Video Downloader)*\n\n` +
+      `អ្នកអាចទាញយកវីដេអូ និងសំឡេងពីគ្រប់បណ្តាញសង្គមដោយឥតគិតថ្លៃ និងគ្មាន Watermark!\n\n` +
+      `🌐 *គាំទ្រគ្រប់វេបសាយធំៗ (Supported Sites)៖*\n` +
+      `• *TikTok* (គ្មាន Watermark / No Watermark)\n` +
+      `• *YouTube & Shorts*\n` +
+      `• *Facebook* (Reels & Watch)\n` +
+      `• *Instagram* (Reels & Posts)\n` +
+      `• *Twitter / X*\n` +
+      `• *Threads, Reddit, Pinterest, Douyin...*\n` +
+      `• និងវេបសាយជាង 1000+ ទៀត!\n\n` +
+      `💡 *របៀបប្រើប្រាស់ងាយៗ៖*\n` +
+      `1️⃣ គ្រាន់តែ Copy Link វីដេអូដែលចង់បាន\n` +
+      `2️⃣ ផ្ញើ (Paste) Link ចូលក្នុង Chat នេះផ្ទាល់\n` +
+      `3️⃣ ឬប្រើពាក្យបញ្ជា \`/dl <link>\` (វីដេអូ)\n` +
+      `4️⃣ ឬប្រើពាក្យបញ្ជា \`/mp3 <link>\` (សំឡេង MP3)`;
+
+    await ctx.editMessageText(guideText, {
+      parse_mode: 'Markdown',
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback('🔙 ត្រឡប់ក្រោយ (Main Menu)', 'main_menu')]
+      ])
+    });
+  });
+
+  // Handler: Video Download
+  async function handleVideoDownload(ctx, rawUrl) {
+    const url = extractUrl(rawUrl);
+    if (!url) {
+      return ctx.reply('⚠️ សូមបញ្ចូល Link វីដេអូឱ្យបានត្រឹមត្រូវ។\nឧទាហរណ៍៖ `/dl https://vt.tiktok.com/...`', { parse_mode: 'Markdown' });
+    }
+
+    const waitMsg = await ctx.reply('⏳ កំពុងដំណើរការទាញយកវីដេអូ... សូមរង់ចាំបន្តិច');
+    let videoResult = null;
+
+    try {
+      videoResult = await downloadVideo(url);
+      const shortId = cacheUrl(url);
+
+      const caption =
+        `🎬 *${escapeMarkdown(videoResult.title)}*\n\n` +
+        `🌐 *ប្រភព៖* ${videoResult.platform}\n` +
+        `👤 *អ្នកបង្ហោះ៖* ${escapeMarkdown(videoResult.uploader)}\n` +
+        `⏱️ *រយៈពេល៖* ${videoResult.durationFormatted}\n` +
+        `📦 *ទំហំ៖* ${(videoResult.sizeBytes / (1024 * 1024)).toFixed(1)} MB\n\n` +
+        `🤖 _ទាញយកដោយ @${config.botUsername || 'StoreBot'}_`;
+
+      const buttons = [
+        [Markup.button.callback('🎵 ទាញយកតែសំឡេង (MP3)', `dl_mp3_${shortId}`)]
+      ];
+
+      await ctx.replyWithVideo(
+        { source: videoResult.filePath },
+        {
+          caption,
+          parse_mode: 'Markdown',
+          ...Markup.inlineKeyboard(buttons)
+        }
+      );
+
+      await ctx.deleteMessage(waitMsg.message_id).catch(() => {});
+    } catch (err) {
+      console.error('Video download error:', err.message);
+      const isOversized = err.message.includes('50MB') || err.message.includes('larger than');
+      const shortId = cacheUrl(url);
+
+      if (isOversized) {
+        await ctx.telegram.editMessageText(
+          ctx.chat.id,
+          waitMsg.message_id,
+          null,
+          `⚠️ *វីដេអូនេះមានទំហំធំជាង 50MB!*\n\n` +
+          `Telegram Bot អនុញ្ញាតឱ្យផ្ញើវីដេអូត្រឹម 50MB ប៉ុណ្ណោះ។\n` +
+          `💡 លោកអ្នកអាចទាញយកតែសំឡេង MP3 ដោយចុចប៊ូតុងខាងក្រោម៖`,
+          {
+            parse_mode: 'Markdown',
+            ...Markup.inlineKeyboard([
+              [Markup.button.callback('🎵 ទាញយកជាសំឡេង (MP3)', `dl_mp3_${shortId}`)]
+            ])
+          }
+        );
+      } else {
+        await ctx.telegram.editMessageText(
+          ctx.chat.id,
+          waitMsg.message_id,
+          null,
+          `❌ *មិនអាចទាញយកវីដេអូបានទេ*\n\nមូលហេតុ៖ ${escapeMarkdown(err.message)}\n\n💡 សូមពិនិត្យមើល Link ឬសាកល្បងម្ដងទៀត។`,
+          { parse_mode: 'Markdown' }
+        );
+      }
+    } finally {
+      if (videoResult && typeof videoResult.cleanup === 'function') {
+        videoResult.cleanup();
+      }
+    }
+  }
+
+  // Handler: Audio Download
+  async function handleAudioDownload(ctx, rawUrl) {
+    const url = extractUrl(rawUrl);
+    if (!url) {
+      return ctx.reply('⚠️ សូមបញ្ចូល Link វីដេអូឱ្យបានត្រឹមត្រូវ។\nឧទាហរណ៍៖ `/mp3 https://www.youtube.com/...`', { parse_mode: 'Markdown' });
+    }
+
+    const waitMsg = await ctx.reply('🎵 កំពុងទាញយក និងបម្លែងជាសំឡេង MP3... សូមរង់ចាំបន្តិច');
+    let audioResult = null;
+
+    try {
+      audioResult = await downloadAudio(url);
+
+      const caption =
+        `🎵 *${escapeMarkdown(audioResult.title)}*\n\n` +
+        `🌐 *ប្រភព៖* ${audioResult.platform}\n` +
+        `👤 *សិល្បករ/អ្នកបង្ហោះ៖* ${escapeMarkdown(audioResult.artist)}\n` +
+        `⏱️ *រយៈពេល៖* ${audioResult.durationFormatted}\n` +
+        `📦 *ទំហំ៖* ${(audioResult.sizeBytes / (1024 * 1024)).toFixed(1)} MB\n\n` +
+        `🤖 _ទាញយកដោយ @${config.botUsername || 'StoreBot'}_`;
+
+      await ctx.replyWithAudio(
+        { source: audioResult.filePath },
+        {
+          caption,
+          title: audioResult.title,
+          performer: audioResult.artist,
+          parse_mode: 'Markdown'
+        }
+      );
+
+      await ctx.deleteMessage(waitMsg.message_id).catch(() => {});
+    } catch (err) {
+      console.error('Audio download error:', err.message);
+      await ctx.telegram.editMessageText(
+        ctx.chat.id,
+        waitMsg.message_id,
+        null,
+        `❌ *មិនអាចទាញយកសំឡេងបានទេ*\n\nមូលហេតុ៖ ${escapeMarkdown(err.message)}`,
+        { parse_mode: 'Markdown' }
+      );
+    } finally {
+      if (audioResult && typeof audioResult.cleanup === 'function') {
+        audioResult.cleanup();
+      }
+    }
+  }
+
+  // Commands
+  bot.command(['dl', 'download', 'video'], async (ctx) => {
+    const text = ctx.message.text.replace(/^\/(dl|download|video)/i, '').trim();
+    if (!text) {
+      return ctx.reply(
+        `📥 *សូមផ្ញើ Link វីដេអូជាមួយពាក្យបញ្ជា*\n\nឧទាហរណ៍៖\n\`/dl https://vt.tiktok.com/...\`\n\`/dl https://youtu.be/...\`\n\`/dl https://www.facebook.com/.../videos/...\``,
+        { parse_mode: 'Markdown' }
+      );
+    }
+    await handleVideoDownload(ctx, text);
+  });
+
+  bot.command(['mp3', 'audio', 'music'], async (ctx) => {
+    const text = ctx.message.text.replace(/^\/(mp3|audio|music)/i, '').trim();
+    if (!text) {
+      return ctx.reply(
+        `🎵 *សូមផ្ញើ Link ជាមួយពាក្យបញ្ជាដើម្បីទាញយក MP3*\n\nឧទាហរណ៍៖\n\`/mp3 https://youtu.be/...\``,
+        { parse_mode: 'Markdown' }
+      );
+    }
+    await handleAudioDownload(ctx, text);
+  });
+
+  bot.action(/^dl_mp3_(.+)$/, async (ctx) => {
+    await ctx.answerCbQuery('🎵 កំពុងដំណើរការទាញយក MP3...').catch(() => {});
+    const shortId = ctx.match[1];
+    const cached = urlCache.get(shortId);
+    if (!cached || !cached.url) {
+      return ctx.reply('⚠️ Link នេះបានផុតកំណត់ហើយ។ សូមផ្ញើ Link វីដេអូមកម្តងទៀត។');
+    }
+    await handleAudioDownload(ctx, cached.url);
+  });
+
+  // Help command
+  bot.command('help', async (ctx) => {
+    const helpText =
+      `📖 *សៀវភៅណែនាំពាក្យបញ្ជា Bot (Commands Guide)*\n\n` +
+      `🛍️ *ផ្នែកហាង & កាបូបលុយ៖*\n` +
+      `• /start : បើកផ្ទាំង Menu មេ\n` +
+      `• /help : មើលបញ្ជីពាក្យបញ្ជាទាំងអស់\n\n` +
+      `📥 *ផ្នែកទាញយកវីដេអូ & MP3 (Downloader)៖*\n` +
+      `• \`/dl <link>\` : ទាញយកវីដេអូ (TikTok, YouTube, FB, IG, X, Reddit...)\n` +
+      `• \`/mp3 <link>\` : ទាញយកតែសំឡេងជា MP3\n` +
+      `• ឬគ្រាន់តែ Copy & Paste Link ចូលក្នុង Chat នេះផ្ទាល់!\n\n` +
+      `🎤 *ផ្នែក Voice AI៖*\n` +
+      `• \`/tts <អត្ថបទ>\` : បង្កើតសំឡេងនិយាយជាភាសាខ្មែរ\n` +
+      `• ផ្ញើសារសំឡេង (Voice note) : បម្លែងសំឡេងជាអក្សរ`;
+
+    await ctx.replyWithMarkdown(helpText);
+  });
+
+  // Auto-detect link sent in chat
+  bot.on('text', async (ctx, next) => {
+    const text = ctx.message.text || '';
+    if (text.startsWith('/')) {
+      return next();
+    }
+    const detectedUrl = extractUrl(text);
+    if (detectedUrl) {
+      return handleVideoDownload(ctx, detectedUrl);
+    }
+    return next();
   });
 
   return bot;

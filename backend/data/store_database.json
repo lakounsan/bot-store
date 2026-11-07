@@ -1,5 +1,15 @@
 {
-  "users": {},
+  "users": {
+    "8332081943": {
+      "telegramId": 8332081943,
+      "username": "shoppingbboting",
+      "firstName": "𝑀𝑂𝑁𝐺",
+      "balance": 0,
+      "totalSpent": 0,
+      "referredBy": null,
+      "createdAt": "2026-11-07T14:20:30.512Z"
+    }
+  },
   "categories": [
     {
       "id": "cat_accounts",
