@@ -20,6 +20,9 @@ export const config = {
   },
   referralCommissionPercent: parseFloat(process.env.REFERRAL_COMMISSION_PERCENT || '10'),
   openaiApiKey: process.env.OPENAI_API_KEY || '',
-  dataDir: path.resolve(__dirname, '../data')
+  dataDir: path.resolve(__dirname, '../data'),
+  ytdlpPath: process.env.YTDLP_PATH || 'yt-dlp',
+  tempDownloadDir: process.env.TEMP_DOWNLOAD_DIR || path.resolve(__dirname, '../temp_downloads'),
+  maxVideoSizeMB: parseInt(process.env.MAX_VIDEO_SIZE_MB || '49', 10)
 };
 

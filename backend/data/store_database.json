@@ -1,0 +1,115 @@
+{
+  "users": {},
+  "categories": [
+    {
+      "id": "cat_accounts",
+      "name": "Premium Accounts (អាខោន)",
+      "icon": "🎬"
+    },
+    {
+      "id": "cat_software",
+      "name": "Software & Keys (កម្មវិធី)",
+      "icon": "💻"
+    },
+    {
+      "id": "cat_tools",
+      "name": "AI & Developer Tools",
+      "icon": "🤖"
+    }
+  ],
+  "products": [
+    {
+      "id": "prod_netflix",
+      "categoryId": "cat_accounts",
+      "name": "Netflix Premium 4K UHD (1 ខែ)",
+      "description": "អាខោន Netflix 4K UHD Profile ផ្ទាល់ខ្លួន អាចមើលបាន 30 ថ្ងៃ",
+      "price": 3.5,
+      "icon": "🍿"
+    },
+    {
+      "id": "prod_spotify",
+      "categoryId": "cat_accounts",
+      "name": "Spotify Premium Individual (3 ខែ)",
+      "description": "អាខោន Spotify Premium ស្តាប់ភ្លេងគ្មានពាណិជ្ជកម្ម High Quality",
+      "price": 2,
+      "icon": "🎵"
+    },
+    {
+      "id": "prod_win11",
+      "categoryId": "cat_software",
+      "name": "Windows 11 Pro Lifetime Retail Key",
+      "description": "License Key ស្របច្បាប់ 100% សម្រាប់ Activate Windows 11 Pro រហូត",
+      "price": 5,
+      "icon": "🪟"
+    },
+    {
+      "id": "prod_canva",
+      "categoryId": "cat_software",
+      "name": "Canva Pro Lifetime Education",
+      "description": "Upgrade Canva Account របស់អ្នកទៅ Pro ប្រើប្រាស់ Template & AI ពេញលេញ",
+      "price": 4,
+      "icon": "🎨"
+    },
+    {
+      "id": "prod_chatgpt",
+      "categoryId": "cat_tools",
+      "name": "ChatGPT Plus Shared Account (1 ខែ)",
+      "description": "អាខោន ChatGPT Plus ប្រើប្រាស់ GPT-4o, DALL-E 3 & Canvas",
+      "price": 6,
+      "icon": "🤖"
+    }
+  ],
+  "stock": [
+    {
+      "id": "stk_1",
+      "productId": "prod_netflix",
+      "content": "Email: netflix_user01@mail.com | Pass: Khm@2026Net | Pin: 1234",
+      "isSold": false,
+      "soldTo": null,
+      "soldAt": null
+    },
+    {
+      "id": "stk_2",
+      "productId": "prod_netflix",
+      "content": "Email: netflix_user02@mail.com | Pass: Pro#9988Uhd | Pin: 5678",
+      "isSold": false,
+      "soldTo": null,
+      "soldAt": null
+    },
+    {
+      "id": "stk_3",
+      "productId": "prod_spotify",
+      "content": "Email: spot_kh01@mail.com | Pass: Music#2026!Kh",
+      "isSold": false,
+      "soldTo": null,
+      "soldAt": null
+    },
+    {
+      "id": "stk_4",
+      "productId": "prod_win11",
+      "content": "W269N-WFGWX-YVC9B-4J6C9-T83GX (Retail Key)",
+      "isSold": false,
+      "soldTo": null,
+      "soldAt": null
+    },
+    {
+      "id": "stk_5",
+      "productId": "prod_canva",
+      "content": "Invitation Link: https://canva.com/brand/join?token=DEMO_CANVA_KEY_2026",
+      "isSold": false,
+      "soldTo": null,
+      "soldAt": null
+    },
+    {
+      "id": "stk_6",
+      "productId": "prod_chatgpt",
+      "content": "Email: gpt_plus_shared@mail.com | Pass: OpenAi#2026Kh",
+      "isSold": false,
+      "soldTo": null,
+      "soldAt": null
+    }
+  ],
+  "orders": [],
+  "deposits": [],
+  "referrals": []
+}
