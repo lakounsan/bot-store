@@ -2,7 +2,7 @@ services:
   - type: web
     name: telegram-digital-store-bot
     env: node
-    buildCommand: cd store-bot/backend && npm install && cd ../admin-dashboard && npm install && npm run build
+    buildCommand: (mkdir -p /opt/render/project/bin && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /opt/render/project/bin/yt-dlp && chmod a+rx /opt/render/project/bin/yt-dlp) || true; cd store-bot/backend && npm install && cd ../admin-dashboard && npm install && npm run build
     startCommand: cd store-bot/backend && npm start
     envVars:
       - key: PORT
@@ -19,4 +19,6 @@ services:
         value: KHMER DIGITAL STORE
       - key: REFERRAL_COMMISSION_PERCENT
         value: 10
+      - key: YTDLP_PATH
+        value: /opt/render/project/bin/yt-dlp
 

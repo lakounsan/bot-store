@@ -19,7 +19,9 @@
 4. **📢 Broadcast System (ផ្ញើសារដំណឹងម្តងទាំងអស់)**:
    - Admin អាចសរសេរសារផ្សព្វផ្សាយដំណឹងប្រូម៉ូសិន ផ្ញើទៅកាន់សមាជិកទាំងអស់ក្នុង Bot ដោយមាន Rate Limiting ការពារ Telegram Block
 5. **👑 React Admin Dashboard**:
-   - មើលរបាយការណ៍ចំណូល ($), ចំនួន Orders, អតិថិជនសរុប
+   - មើលរបាយការណ៍ចំណូល ($), ចំនួន Orders, អតិថិជនសរុប, និងចំនួនទាញយកវីដេអូសរុប (Downloads Analytics)
+   - **Downloader Manager**: តាមដានសុខភាពម៉ាស៊ីនទាញយកវីដេអូ (yt-dlp Core, FFmpeg Converter, RAM Usage)
+   - មើលស្ថិតិ Platform ពេញនិយម (TikTok, YouTube, Facebook, IG, X...) និងតារាងប្រវត្តិទាញយកថ្មីៗ
    - បន្ថែម/លុប ផលិតផល និងកំណត់តម្លៃ
    - **Bulk Stock Upload**: Paste អាខោន 50 ឬ 100 ក្នុងពេលតែមួយ (១ បន្ទាត់ = ១ អាខោន)
    - ឆែកមើលបញ្ជីអតិថិជន និងប្រវត្តិការទិញ
@@ -57,10 +59,10 @@ store-bot/
 │   └── package.json
 ├── admin-dashboard/                # React 18 + Tailwind CSS + Lucide Icons
 │   ├── src/
-│   │   ├── components/             # Metrics, Stock, Products, Broadcast
+│   │   ├── components/             # Metrics, Stock, Products, Downloader, Broadcast
 │   │   ├── App.jsx
 │   │   └── main.jsx
-│   ├── dist/                       # Compiled Dashboard Assets
+│   ├── dist/                       # Compiled Dashboard Assets (Ready to Serve)
 │   └── package.json
 ├── render.yaml                     # 1-Click Free Hosting Auto-Deploy
 └── README_KH.md
